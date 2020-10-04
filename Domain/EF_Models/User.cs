@@ -8,11 +8,11 @@ namespace Domain.EF_Models
     {
         public User()
         {
-            Applications = new List<Application>();
-            Signs = new List<Sign>();
+            Applications = new List<TimeOffRequest>();
+            Signs = new List<TimeOffRequestReview>();
         }
         public string Position { get; set; }
-        public ICollection<Application> Applications { get; set; }
-        public ICollection<Sign> Signs { get; set; }
+        public ICollection<TimeOffRequest> Applications { get; set; }
+        public ICollection<TimeOffRequestReview> Signs { get; set; }
     }
 }
