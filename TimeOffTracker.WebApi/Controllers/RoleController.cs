@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DataAccess.Static.Context;
+using ApiModels.Models;
+using AutoMapper;
 using Domain.EF_Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using TimeOffTracker.WebApi.ViewModels;
 
 namespace TimeOffTracker.WebApi.Controllers
 {
@@ -20,12 +20,14 @@ namespace TimeOffTracker.WebApi.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IMapper _mapper;
         private ILogger<RoleController> _logger;
 
-        public RoleController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, ILogger<RoleController> logger)
+        public RoleController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper, ILogger<RoleController> logger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _mapper = mapper;
             _logger = logger;
         }
 
@@ -40,12 +42,12 @@ namespace TimeOffTracker.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<User>> SetUserRole([FromForm] RoleChangeModel model)
+        public async Task<ActionResult<UserApiModel>> SetUserRole([FromForm] UserApiModel model)
         {
-            User user = await _userManager.FindByIdAsync(model.UserId);
+            User user = await _userManager.FindByIdAsync(model.Id);
 
             if (user == null)
-                throw new RoleChangeException($"Cannot find user with Id: {model.UserId}");
+                throw new RoleChangeException($"Cannot find user with Id: {model.Id}");
             if (_roleManager.FindByNameAsync(model.Role).Result == null)
                 throw new RoleChangeException($"Role does not exist: {model.Role}");
             try
@@ -63,7 +65,8 @@ namespace TimeOffTracker.WebApi.Controllers
                 throw new RoleChangeException(ex.Message);
             }
 
-            return Ok(user);
+            UserApiModel userModel = _mapper.Map<UserApiModel>(user);
+            return Ok(userModel);
         }
     }
 }

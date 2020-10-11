@@ -4,6 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using ApiModels.Models;
+using AutoMapper;
 using DataAccess.Static.Context;
 using Domain.EF_Models;
 using Microsoft.AspNetCore.Authorization;
@@ -22,18 +24,22 @@ namespace TimeOffTracker.WebApi.Controllers
     public class AccountController : BaseController
     {
         private readonly UserManager<User> _userManager;
+        private readonly IMapper _mapper;
         private ILogger<AccountController> _logger;
 
-        public AccountController(UserManager<User> userManager, ILogger<AccountController> logger)
+        public AccountController(UserManager<User> userManager, IMapper mapper, ILogger<AccountController> logger)
         {
+            _mapper = mapper;
             _userManager = userManager;
             _logger = logger;
         }
 
         [HttpGet]
-        public IEnumerable<User> GetAllUsers()
+        [Authorize(Roles = "Admin")]
+        public IEnumerable<UserApiModel> GetAllUsers()
         {
-            return _userManager.Users.ToList();
+            return _userManager.Users.ToList()
+                .Select(user => _mapper.Map<UserApiModel>(user)).ToList();
         }
 
         [HttpPost]
@@ -42,7 +48,11 @@ namespace TimeOffTracker.WebApi.Controllers
         {
             if (ModelState.IsValid)
             {
-                User user = new User { Email = model.Email, UserName = model.Email };
+                User user = new User 
+                { 
+                    Email = model.Email, UserName = model.Email, 
+                    FirstName = model.FirstName, LastName = model.LastName 
+                };
 
                 try
                 {

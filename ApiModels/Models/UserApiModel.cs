@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ApiModels.Models
+﻿namespace ApiModels.Models
 {
     public class UserApiModel
     {
-        public int Id { get; set; } 
-        public UserApiModel()
-        {
-            Requests = new List<TimeOffRequestApiModel>();
-        }
-        public string Position { get; set; }
-        public ICollection<TimeOffRequestApiModel> Requests { get; set; }
+        public string Id { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Role { get; set; }
     }
 }

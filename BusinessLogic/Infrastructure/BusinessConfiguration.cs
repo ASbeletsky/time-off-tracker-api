@@ -1,4 +1,5 @@
-﻿using BusinessLogic.Services;
+﻿using AutoMapper;
+using BusinessLogic.Services;
 using DataAccess.Context;
 using DataAccess.Infrastructure;
 using Domain.EF_Models;
@@ -6,9 +7,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
+using TimeOffTracker.WebApi.MapperProfile;
 
 namespace BusinessLogic.Infrastructure
 {
@@ -17,6 +17,11 @@ namespace BusinessLogic.Infrastructure
         public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {            
             services.AddTransient(typeof(TimeOffRequestService));
+
+            services.AddScoped(provider => new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile(new MapperProfile(provider.GetService<TimeOffTrackerContext>()));
+            }).CreateMapper());
 
             DataAccessConfiguration.ConfigureServices(services, configuration);
         }
