@@ -1,6 +1,4 @@
-﻿using Domain.EF_Models;
-
-namespace TimeOffTracker.WebApi.ViewModels
+﻿namespace TimeOffTracker.WebApi.ViewModels
 {
     public class LoggedInUserModel
     {
