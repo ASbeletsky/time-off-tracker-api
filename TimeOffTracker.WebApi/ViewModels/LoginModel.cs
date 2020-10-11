@@ -2,9 +2,9 @@
 
 namespace TimeOffTracker.WebApi.ViewModels
 {
-    public class AuthenticateModel
+    public class LoginModel
     {
-        [Required]
+        [Required(ErrorMessage = "Login can't be empty")]
         public string Username { get; set; }
 
         [Required]

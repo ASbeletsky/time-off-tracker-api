@@ -21,7 +21,7 @@ namespace TimeOffTracker.WebApi.Controllers
         }
 
         [HttpPost]
-        public IActionResult Login([FromForm]AuthenticateModel model)
+        public IActionResult Login([FromForm]LoginModel model)
         {
             LoggedInUserModel userWithJWT = _userService.Authenticate(model.Username, model.Password);
 
