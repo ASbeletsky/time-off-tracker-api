@@ -18,17 +18,11 @@ namespace TimeOffTracker.WebApi.Controllers
     [Authorize(Roles = "Admin")]
     public class RoleController : BaseController
     {
-        private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly IMapper _mapper;
-        private ILogger<RoleController> _logger;
 
-        public RoleController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper, ILogger<RoleController> logger)
+        public RoleController(RoleManager<IdentityRole> roleManager)
         {
-            _userManager = userManager;
             _roleManager = roleManager;
-            _mapper = mapper;
-            _logger = logger;
         }
 
         [HttpGet]
@@ -39,34 +33,6 @@ namespace TimeOffTracker.WebApi.Controllers
                    .ToList();
 
             return allRoles;
-        }
-
-        [HttpPost]
-        public async Task<ActionResult<UserApiModel>> SetUserRole([FromForm] UserApiModel model)
-        {
-            User user = await _userManager.FindByIdAsync(model.Id);
-
-            if (user == null)
-                throw new RoleChangeException($"Cannot find user with Id: {model.Id}");
-            if (_roleManager.FindByNameAsync(model.Role).Result == null)
-                throw new RoleChangeException($"Role does not exist: {model.Role}");
-            try
-            {
-                var userRole = await _userManager.GetRolesAsync(user);
-
-                if (userRole.FirstOrDefault() != model.Role)
-                {
-                    await _userManager.AddToRoleAsync(user, model.Role);
-                    await _userManager.RemoveFromRolesAsync(user, userRole);
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new RoleChangeException(ex.Message);
-            }
-
-            UserApiModel userModel = _mapper.Map<UserApiModel>(user);
-            return Ok(userModel);
         }
     }
 }
