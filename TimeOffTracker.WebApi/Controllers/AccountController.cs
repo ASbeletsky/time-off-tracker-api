@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ApiModels.Models;
 using AutoMapper;
+using BusinessLogic.Services;
 using DataAccess.Static.Context;
 using Domain.EF_Models;
 using Microsoft.AspNetCore.Authorization;
@@ -25,12 +26,14 @@ namespace TimeOffTracker.WebApi.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly IMapper _mapper;
+        private readonly UserService _userService;
         private ILogger<AccountController> _logger;
 
-        public AccountController(UserManager<User> userManager, IMapper mapper, ILogger<AccountController> logger)
+        public AccountController(UserManager<User> userManager, IMapper mapper, UserService userService, ILogger<AccountController> logger)
         {
             _mapper = mapper;
             _userManager = userManager;
+            _userService = userService;
             _logger = logger;
         }
 
@@ -38,8 +41,7 @@ namespace TimeOffTracker.WebApi.Controllers
         [Authorize(Roles = "Admin")]
         public IEnumerable<UserApiModel> GetAllUsers()
         {
-            return _userManager.Users.ToList()
-                .Select(user => _mapper.Map<UserApiModel>(user)).ToList();
+            return _userService.GetUsers();
         }
 
         [HttpPost]
@@ -48,11 +50,7 @@ namespace TimeOffTracker.WebApi.Controllers
         {
             if (ModelState.IsValid)
             {
-                User user = new User 
-                { 
-                    Email = model.Email, UserName = model.Email, 
-                    FirstName = model.FirstName, LastName = model.LastName 
-                };
+                User user = _mapper.Map<User>(model);
 
                 try
                 {

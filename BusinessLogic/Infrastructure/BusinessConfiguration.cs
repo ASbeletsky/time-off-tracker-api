@@ -18,9 +18,11 @@ namespace BusinessLogic.Infrastructure
         {            
             services.AddTransient(typeof(TimeOffRequestService));
 
-            services.AddScoped(provider => new MapperConfiguration(cfg =>
+            services.AddScoped(typeof(UserService));
+
+            services.AddSingleton(provider => new MapperConfiguration(cfg =>
             {
-                cfg.AddProfile(new MapperProfile(provider.GetService<TimeOffTrackerContext>()));
+                cfg.AddProfile(new MapperProfile());
             }).CreateMapper());
 
             DataAccessConfiguration.ConfigureServices(services, configuration);

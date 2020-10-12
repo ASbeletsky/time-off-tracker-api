@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace DataAccess.Repository
 {
-    public class UserRepository: BaseRepository<User, int>
+    public class UserRepository: BaseRepository<User, string>
     {
         public UserRepository(TimeOffTrackerContext context) : base(context) { }
     }
