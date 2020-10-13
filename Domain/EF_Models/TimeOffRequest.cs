@@ -23,6 +23,6 @@ namespace Domain.EF_Models
         public VacationRequestState State { get; set; }
         public TimeOffDuration Duration { get; set; }
         public User User { get; set; }
-        public int UserId { get; set; }
+        public string UserId { get; set; }
     }
 }
