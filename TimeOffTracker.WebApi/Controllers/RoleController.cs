@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using TimeOffTracker.WebApi.ViewModels;
 
 namespace TimeOffTracker.WebApi.Controllers
 {
@@ -45,12 +46,12 @@ namespace TimeOffTracker.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<UserApiModel>> SetUserRole([FromForm] UserApiModel model)
+        public async Task<ActionResult<UserApiModel>> SetUserRole([FromForm] RoleChangeModel model)
         {
-            User user = await _userManager.FindByIdAsync(model.Id);
+            User user = await _userManager.FindByIdAsync(model.UserId);
 
             if (user == null)
-                throw new RoleChangeException($"Cannot find user with Id: {model.Id}");
+                throw new RoleChangeException($"Cannot find user with Id: {model.UserId}");
             if (_roleManager.FindByNameAsync(model.Role).Result == null)
                 throw new RoleChangeException($"Role does not exist: {model.Role}");
             try
