@@ -11,18 +11,18 @@ namespace DataAccess.Context
     public class IdentityInitializer
     {
         private readonly UserManager<User> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<IdentityRole<int>> _roleManager;
 
-        public IdentityInitializer(UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
+        public IdentityInitializer(UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager)
         {
             _userManager = userManager;
             _roleManager = roleManager;
         }
         public async Task SeedAsync()
         {
-            await _roleManager.CreateAsync(new IdentityRole(RoleName.manager));
-            await _roleManager.CreateAsync(new IdentityRole(RoleName.accountant));
-            await _roleManager.CreateAsync(new IdentityRole(RoleName.employee));
+            await _roleManager.CreateAsync(new IdentityRole<int>(RoleName.manager));
+            await _roleManager.CreateAsync(new IdentityRole<int>(RoleName.accountant));
+            await _roleManager.CreateAsync(new IdentityRole<int>(RoleName.employee));
 
             var login = "mainadmin@mail.ru";
             var pass = "mainadmin89M#";
@@ -36,7 +36,7 @@ namespace DataAccess.Context
                 {
                     if ((await _roleManager.FindByNameAsync(RoleName.admin)) == null)
                     {
-                        var saverole = await _roleManager.CreateAsync(new IdentityRole(RoleName.admin));
+                        var saverole = await _roleManager.CreateAsync(new IdentityRole<int>(RoleName.admin));
 
                         if (saverole.Succeeded)
                         {

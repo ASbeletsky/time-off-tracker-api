@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace DataAccess.Repository
 {
-    public class UserRepository : BaseRepository<User, string>
+    public class UserRepository : BaseRepository<User, int>
     {
         public UserRepository(TimeOffTrackerContext context) : base(context)
         {
@@ -38,7 +38,7 @@ namespace DataAccess.Repository
             return await users.AsNoTracking().ToListAsync();
         }
 
-        public override async Task<User> FindAsync(string id)
+        public override async Task<User> FindAsync(int id)
         {
             var resultUser =
                 from user in _context.Users

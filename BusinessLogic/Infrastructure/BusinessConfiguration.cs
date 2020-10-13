@@ -20,7 +20,7 @@ namespace BusinessLogic.Infrastructure
         {            
             services.AddTransient(typeof(TimeOffRequestService));
 
-            services.AddScoped<IRepository<User, string>, UserRepository>();
+            services.AddScoped<IRepository<User, int>, UserRepository>();
 
             services.AddScoped(typeof(UserService));
 
@@ -34,7 +34,7 @@ namespace BusinessLogic.Infrastructure
         public static async Task ConfigureIdentityInicializerAsync(IServiceProvider provider)
         {
             var userManager = provider.GetRequiredService<UserManager<User>>();
-            var roleManager = provider.GetRequiredService<RoleManager<IdentityRole>>();
+            var roleManager = provider.GetRequiredService<RoleManager<IdentityRole<int>>>();
 
             await new IdentityInitializer(userManager, roleManager).SeedAsync();
         }

@@ -15,10 +15,10 @@ namespace BusinessLogic.Services
 {
     public class UserService
     {
-        IRepository<User, string> _repository;
+        IRepository<User, int> _repository;
         IMapper _mapper;
 
-        public UserService(IRepository<User, string> repository, IMapper mapper)
+        public UserService(IRepository<User, int> repository, IMapper mapper)
         {
             _repository = repository;
             _mapper = mapper;
