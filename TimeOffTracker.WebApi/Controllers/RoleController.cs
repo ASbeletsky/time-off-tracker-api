@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ApiModels.Models;
 using AutoMapper;
+using BusinessLogic.Services;
 using Domain.EF_Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -20,13 +21,15 @@ namespace TimeOffTracker.WebApi.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly UserService _userService;
         private readonly IMapper _mapper;
         private ILogger<RoleController> _logger;
 
-        public RoleController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IMapper mapper, ILogger<RoleController> logger)
+        public RoleController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, UserService userService, IMapper mapper, ILogger<RoleController> logger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _userService = userService;
             _mapper = mapper;
             _logger = logger;
         }
@@ -65,7 +68,7 @@ namespace TimeOffTracker.WebApi.Controllers
                 throw new RoleChangeException(ex.Message);
             }
 
-            UserApiModel userModel = _mapper.Map<UserApiModel>(user);
+            UserApiModel userModel = _userService.GetUser(user);
             return Ok(userModel);
         }
     }
