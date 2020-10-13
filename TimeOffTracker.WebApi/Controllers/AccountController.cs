@@ -1,19 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using ApiModels.Models;
 using AutoMapper;
 using BusinessLogic.Services;
-using DataAccess.Static.Context;
 using Domain.EF_Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
 using TimeOffTracker.WebApi.Exceptions;
 using TimeOffTracker.WebApi.ViewModels;
@@ -38,15 +32,8 @@ namespace TimeOffTracker.WebApi.Controllers
             _logger = logger;
         }
 
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<IEnumerable<UserApiModel>> GetAllUsers()
-        {
-            return await _userService.GetUsers();
-        }
-
         [HttpPost]
-        public async Task<HttpStatusCode> Post([FromForm] RegisterViewModel model)
+        public async Task<IActionResult> Post([FromForm] RegisterViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -59,7 +46,9 @@ namespace TimeOffTracker.WebApi.Controllers
                     if (result.Succeeded)
                     {
                         await _userManager.AddToRoleAsync(user, model.Role);
-                        return HttpStatusCode.OK;
+                        
+                        _logger.LogInformation("Account created successfully:\n{User}, {UserId}", user.UserName, user.Id);
+                        return Ok(_mapper.Map<UserApiModel>(user));
                     }
 
                     StringBuilder sb = new StringBuilder();
@@ -72,6 +61,8 @@ namespace TimeOffTracker.WebApi.Controllers
                 }
                 catch (Exception ex)
                 {
+                    if (_userManager.FindByNameAsync(user.UserName).Result != null)
+                        _userManager.DeleteAsync(user).Wait();
                     throw new UserCreateException(ex.Message);
                 }
             }

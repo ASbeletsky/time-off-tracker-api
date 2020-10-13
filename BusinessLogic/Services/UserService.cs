@@ -25,7 +25,7 @@ namespace BusinessLogic.Services
             _mapper = mapper;
         }
 
-        public async Task<UserApiModel> GetUser(string id) => 
+        public async Task<UserApiModel> GetUser(int id) => 
             _mapper.Map<UserApiModel>(await _repository.FindAsync(id));
 
         public async Task<IEnumerable<UserApiModel>> GetUsers() => 

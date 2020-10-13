@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Logging;
-using System;
 
 namespace TimeOffTracker.WebApi.Filters
 {
@@ -20,7 +18,6 @@ namespace TimeOffTracker.WebApi.Filters
             string actionName = context.ActionDescriptor.DisplayName;
             _Logger.LogError(context.Exception, "Error in method: {Method}", actionName);
 
-            string exceptionStack = context.Exception.StackTrace;
             string exceptionMessage = context.Exception.Message;
             context.Result = new ContentResult()
             {

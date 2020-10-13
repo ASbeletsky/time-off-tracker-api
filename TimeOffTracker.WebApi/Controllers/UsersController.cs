@@ -1,5 +1,4 @@
 ﻿using ApiModels.Models;
-using AutoMapper;
 using BusinessLogic.Services;
 using Domain.EF_Models;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using TimeOffTracker.WebApi.Exceptions;
@@ -44,7 +42,7 @@ namespace TimeOffTracker.WebApi.Controllers
 
         [HttpGet("[action]")]
         [Authorize]
-        public async Task<IActionResult> GetById([FromQuery(Name = "id")]string userId)
+        public async Task<IActionResult> GetById([FromQuery(Name = "id")] int userId)
         {
             UserApiModel userModel = await _userService.GetUser(userId);
             if (userModel != null)
@@ -69,7 +67,7 @@ namespace TimeOffTracker.WebApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<UserApiModel>> SetUserRole([FromForm] RoleChangeModel model)
         {
-            User user = await _userManager.FindByIdAsync(model.UserId);
+            User user = await _userManager.FindByIdAsync(model.UserId.ToString());
 
             if (user == null)
                 throw new UserNotFoundException($"Can't find user with Id: {model.UserId}");
@@ -105,8 +103,7 @@ namespace TimeOffTracker.WebApi.Controllers
             IdentityResult result = await _userManager.DeleteAsync(user);
             if (result.Succeeded)
             {
-                _logger.LogInformation("User {User} deleted successfully",
-                user.UserName);
+                _logger.LogInformation("User {User} deleted successfully, id: {userId}", user.UserName, user.Id);
                 return NoContent();
             }
             else
