@@ -38,7 +38,7 @@ namespace TimeOffTracker.WebApi.Services
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Name, user.Id),
+                    new Claim(ClaimTypes.Name, user.Id.ToString()),
                     new Claim(ClaimTypes.Role, userRole)
                 }),
                 Expires = DateTime.UtcNow.AddHours(_appSettings.TokenExpiresTimeHours),
