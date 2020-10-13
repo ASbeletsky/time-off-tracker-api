@@ -68,7 +68,7 @@ namespace TimeOffTracker.WebApi.Controllers
                 throw new RoleChangeException(ex.Message);
             }
 
-            UserApiModel userModel = _userService.GetUser(user);
+            UserApiModel userModel = await _userService.GetUser(user);
             return Ok(userModel);
         }
     }

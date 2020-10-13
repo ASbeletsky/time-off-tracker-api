@@ -9,46 +9,23 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BusinessLogic.Services
 {
     public class UserService
     {
-        UserManager<User> _userManager;
+        IRepository<User, string> _repository;
         IMapper _mapper;
 
-        public UserService(UserManager<User> userManager, IMapper mapper)
+        public UserService(IRepository<User, string> repository, IMapper mapper)
         {
-            _userManager = userManager;
+            _repository = repository;
             _mapper = mapper;
         }
 
-        public UserApiModel GetUser(User user)
-        {
-            UserApiModel userModel = _mapper.Map<UserApiModel>(user);
-            SetUserRole(user, userModel);
+        public async Task<UserApiModel> GetUser(User user) => _mapper.Map<UserApiModel>(await _repository.FindAsync(user.Id));
 
-            return userModel;
-        }
-
-        public IEnumerable<UserApiModel> GetUsers()
-        {
-            var users = _userManager.Users.ToList();
-            IEnumerable<UserApiModel> userModels = _mapper.Map<IEnumerable<UserApiModel>>(users);
-            
-            var usersEnumerator = users.GetEnumerator();
-            var modelsEnumerator = userModels.GetEnumerator();
-            while (usersEnumerator.MoveNext() && modelsEnumerator.MoveNext())
-            {
-                SetUserRole(usersEnumerator.Current, modelsEnumerator.Current);
-            }
-
-            return userModels;
-        }
-
-        private void SetUserRole(User user, UserApiModel userModel)
-        {
-            userModel.Role = _userManager.GetRolesAsync(user).Result.FirstOrDefault();
-        }
+        public async Task<IEnumerable<UserApiModel>> GetUsers() => _mapper.Map<IEnumerable<UserApiModel>>(await _repository.GetAllAsync());
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.EF_Models
 {
@@ -13,5 +14,8 @@ namespace Domain.EF_Models
         {
             Requests = new List<TimeOffRequest>();
         }
+
+        [NotMapped]
+            public string Role { get; set; }
     }
 }

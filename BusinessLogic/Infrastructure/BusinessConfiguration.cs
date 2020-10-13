@@ -2,6 +2,8 @@
 using BusinessLogic.Services;
 using DataAccess.Context;
 using DataAccess.Infrastructure;
+using DataAccess.Repository;
+using DataAccess.Repository.Interfaces;
 using Domain.EF_Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -17,6 +19,8 @@ namespace BusinessLogic.Infrastructure
         public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {            
             services.AddTransient(typeof(TimeOffRequestService));
+
+            services.AddScoped<IRepository<User, string>, UserRepository>();
 
             services.AddScoped(typeof(UserService));
 

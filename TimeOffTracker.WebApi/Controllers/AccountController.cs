@@ -39,9 +39,9 @@ namespace TimeOffTracker.WebApi.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public IEnumerable<UserApiModel> GetAllUsers()
+        public async Task<IEnumerable<UserApiModel>> GetAllUsers()
         {
-            return _userService.GetUsers();
+            return await _userService.GetUsers();
         }
 
         [HttpPost]
