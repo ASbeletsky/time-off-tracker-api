@@ -22,6 +22,7 @@ namespace TimeOffTracker.WebApi.Controllers
 {
     [Route("auth/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class AccountController : BaseController
     {
         private readonly UserManager<User> _userManager;
@@ -45,7 +46,6 @@ namespace TimeOffTracker.WebApi.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
         public async Task<HttpStatusCode> Post([FromForm] RegisterViewModel model)
         {
             if (ModelState.IsValid)
