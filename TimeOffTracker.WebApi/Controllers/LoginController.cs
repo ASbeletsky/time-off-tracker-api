@@ -11,10 +11,10 @@ namespace TimeOffTracker.WebApi.Controllers
     [Route("auth/[controller]")]
     public class LoginController : BaseController
     {
-        private readonly UserService _userService;
+        private readonly UserTokenService _userService;
         private ILogger<LoginController> _logger;
 
-        public LoginController(UserService userService, ILogger<LoginController> logger)
+        public LoginController(UserTokenService userService, ILogger<LoginController> logger)
         {
             _userService = userService;
             _logger = logger;

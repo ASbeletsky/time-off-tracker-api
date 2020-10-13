@@ -14,12 +14,12 @@ using TimeOffTracker.WebApi.ViewModels;
 
 namespace TimeOffTracker.WebApi.Services
 {
-    public class UserService
+    public class UserTokenService
     {
         private readonly UserManager<User> _userManager;
         private readonly AppSettings _appSettings;
 
-        public UserService(UserManager<User> userManager, IOptions<AppSettings> appSettings)
+        public UserTokenService(UserManager<User> userManager, IOptions<AppSettings> appSettings)
         {
             _userManager = userManager;
             _appSettings = appSettings.Value;

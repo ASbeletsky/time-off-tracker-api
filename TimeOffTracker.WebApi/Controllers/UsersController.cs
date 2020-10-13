@@ -25,34 +25,30 @@ namespace TimeOffTracker.WebApi.Controllers
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly UserService _userService;
-        private readonly IMapper _mapper;
         private readonly ILogger<UsersController> _logger;
 
-        public UsersController( UserManager<User> userManager, RoleManager<IdentityRole> roleManager, UserService userService,
-                                IMapper mapper, ILogger<UsersController> logger)
+        public UsersController( UserManager<User> userManager, RoleManager<IdentityRole> roleManager, UserService userService, ILogger<UsersController> logger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _userService = userService;
-            _mapper = mapper;
             _logger = logger;
         }
 
         [HttpGet]
         [Authorize]
-        public IEnumerable<UserApiModel> GetAll()
+        public async Task<IEnumerable<UserApiModel>> GetAll()
         {
-            return _userManager.Users.ToList()
-                .Select(user => _mapper.Map<UserApiModel>(user)).ToList();
+            return await _userService.GetUsers();
         }
 
         [HttpGet("[action]")]
         [Authorize]
         public async Task<IActionResult> GetById([FromQuery(Name = "id")]string userId)
         {
-            User user = await _userManager.FindByIdAsync(userId);
-            if (user != null)
-                return Ok(_userService.GetUser(user));
+            UserApiModel userModel = await _userService.GetUser(userId);
+            if (userModel != null)
+                return Ok(userModel);
             else
                 throw new UserNotFoundException($"Can't find user with Id: {userId}");
         }
@@ -61,10 +57,10 @@ namespace TimeOffTracker.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> GetByRole([FromQuery(Name = "role")] string roleName)
         {
-            var users = await _userManager.GetUsersInRoleAsync(roleName);
+            var users = await _userService.GetUsersByRole(roleName);
 
-            if (users != null)
-                return Ok(users.Select(user => _mapper.Map<UserApiModel>(user)).ToList());
+            if (users.Count() != 0)
+                return Ok(users);
             else
                 throw new UserNotFoundException($"Can't find users in role: {roleName}");
         }
@@ -97,8 +93,8 @@ namespace TimeOffTracker.WebApi.Controllers
             _logger.LogInformation("Successful role change for user {User} with id {userId} to {toRole}",
                 user.UserName, model.UserId, model.Role);
 
-            UserApiModel userModel = await _userService.GetUser(user);
-            return Ok(await _userService.GetUser(user));
+            UserApiModel userModel = await _userService.GetUser(user.Id);
+            return Ok(userModel);
         }
 
         [HttpDelete]
