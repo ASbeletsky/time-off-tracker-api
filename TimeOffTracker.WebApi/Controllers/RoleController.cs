@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DataAccess.Static.Context;
+using ApiModels.Models;
+using AutoMapper;
+using BusinessLogic.Services;
 using Domain.EF_Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -19,13 +21,17 @@ namespace TimeOffTracker.WebApi.Controllers
     public class RoleController : BaseController
     {
         private readonly UserManager<User> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<IdentityRole<int>> _roleManager;
+        private readonly UserService _userService;
+        private readonly IMapper _mapper;
         private ILogger<RoleController> _logger;
 
-        public RoleController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, ILogger<RoleController> logger)
+        public RoleController(UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager, UserService userService, IMapper mapper, ILogger<RoleController> logger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _userService = userService;
+            _mapper = mapper;
             _logger = logger;
         }
 
@@ -40,9 +46,9 @@ namespace TimeOffTracker.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<User>> SetUserRole([FromForm] RoleChangeModel model)
+        public async Task<ActionResult<UserApiModel>> SetUserRole([FromForm] RoleChangeModel model)
         {
-            User user = await _userManager.FindByIdAsync(model.UserId);
+            User user = await _userManager.FindByIdAsync(model.UserId.ToString());
 
             if (user == null)
                 throw new RoleChangeException($"Cannot find user with Id: {model.UserId}");
@@ -63,7 +69,8 @@ namespace TimeOffTracker.WebApi.Controllers
                 throw new RoleChangeException(ex.Message);
             }
 
-            return Ok(user);
+            UserApiModel userModel = await _userService.GetUser(user);
+            return Ok(userModel);
         }
     }
 }

@@ -24,7 +24,7 @@ namespace DataAccess.Infrastructure
             services.AddDbContext<TimeOffTrackerContext>(option =>
                 option.UseSqlServer(configuration.GetConnectionString("defaultConnection")));
 
-            services.AddIdentity<User, IdentityRole>()
+            services.AddIdentity<User, IdentityRole<int>>()
                .AddEntityFrameworkStores<TimeOffTrackerContext>()
                .AddDefaultTokenProviders();
         }
