@@ -8,7 +8,7 @@ namespace TimeOffTracker.WebApi.Controllers
 {
     [ApiController]
     [AllowAnonymous]
-    [Route("auth/[controller]")]
+    [Route("auth/token")]
     public class LoginController : BaseController
     {
         private readonly UserTokenService _userService;

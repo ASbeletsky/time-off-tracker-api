@@ -1,13 +1,11 @@
 ﻿using DataAccess.Context;
 using DataAccess.Repository.Interfaces;
 using Domain.EF_Models;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DataAccess.Repository
@@ -47,7 +45,7 @@ namespace DataAccess.Repository
                        on user.Id equals userRole.UserId
                    join role in _context.Roles
                        on userRole.RoleId equals role.Id
-                   select new User
+                   select new User()
                    {
                        Id = user.Id,
                        FirstName = user.FirstName,

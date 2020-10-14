@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using DataAccess.Static.Context;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,12 +10,12 @@ namespace TimeOffTracker.WebApi.Controllers
 {
     [ApiController]
     [Route("auth/[controller]")]
-    [Authorize(Roles = "Admin")]
-    public class RoleController : BaseController
+    [Authorize(Roles = RoleName.admin)]
+    public class RolesController : BaseController
     {
         private readonly RoleManager<IdentityRole<int>> _roleManager;
 
-        public RoleController(RoleManager<IdentityRole<int>> roleManager)
+        public RolesController(RoleManager<IdentityRole<int>> roleManager)
         {
             _roleManager = roleManager;
         }
@@ -23,7 +24,7 @@ namespace TimeOffTracker.WebApi.Controllers
         public IEnumerable<string> GetAllRoles()
         {
             IEnumerable<string> allRoles = _roleManager.Roles.AsNoTracking()
-                   .Select(role => role.Name).Where(roleName => roleName != "ADMIN")
+                   .Select(role => role.Name).Where(roleName => roleName != RoleName.admin)
                    .ToList();
 
             return allRoles;
