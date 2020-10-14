@@ -21,6 +21,6 @@ namespace ApiModels.Models
         public int StateId { get; set; }
         public int DurationId { get; set; }
         public UserApiModel User { get; set; }
-        public string UserId { get; set; }
+        public int UserId { get; set; }
     }
 }

@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 using ApiModels.Models;
 using BusinessLogic.Services;
 using Domain.EF_Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 
 namespace TimeOffTracker.WebApi.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class RequestController : ControllerBase
@@ -26,24 +28,23 @@ namespace TimeOffTracker.WebApi.Controllers
         [HttpGet]
         public async Task<IReadOnlyCollection<TimeOffRequestApiModel>> Get()
         {
-            var id = this.User.Identity.Name;
-            return await _service.GetAllAsync(this.User.Identity.Name);
+            return await _service.GetAllAsync(int.Parse(this.User.Identity.Name));
         }
 
         [HttpGet("{id}")]
         public async Task<TimeOffRequestApiModel> Get(int id)
         {
-            return await _service.GetByIdAsync(this.User.Identity.Name, id);
+            return await _service.GetByIdAsync(int.Parse(this.User.Identity.Name), id);
         }
 
         [HttpPost]
-        public async Task Post([FromBody] TimeOffRequestApiModel model)
+        public async Task Post([FromForm] TimeOffRequestApiModel model)
         {
             await _service.AddAsync(model);
         }
 
         [HttpPut("{id}")]
-        public async Task Put(int id, [FromBody] TimeOffRequestApiModel newModel)
+        public async Task Put(int id, [FromForm] TimeOffRequestApiModel newModel)
         {
             await _service.UpdateAsync(id, newModel);
         }
@@ -51,7 +52,7 @@ namespace TimeOffTracker.WebApi.Controllers
         [HttpDelete("{id}")]
         public async Task Delete(int id)
         {
-            await _service.DeleteAsync(this.User.Identity.Name, id);
+            await _service.DeleteAsync(int.Parse(this.User.Identity.Name), id);
         }
     }
 }
