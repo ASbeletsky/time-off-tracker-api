@@ -40,34 +40,14 @@ namespace BusinessLogic.Services
             return user;
         }
 
-        public async Task<IEnumerable<UserApiModel>> GetUsers() =>
-            _mapper.Map<IEnumerable<UserApiModel>>(await _repository.GetAllAsync());
-
-
-        public async Task<IEnumerable<UserApiModel>> GetUsersByConditions(string name = null, string role = null)
+        public async Task<IEnumerable<UserApiModel>> GetUsers(string name = null, string role = null)
         {
             Expression<Func<User, bool>> condition = user => 
                 (name == null || (user.FirstName + " " + user.LastName).ToLower().Contains(name.ToLower())) 
                 && (role == null || user.Role == role);
 
-
             IEnumerable<User> users = await _repository.FilterAsync(condition);
             IEnumerable<UserApiModel> models = _mapper.Map<IEnumerable<UserApiModel>>(users);
-
-            if (!models.Any())
-            {
-                StringBuilder errorStringBuilder = new StringBuilder("Can't find users");
-                if (name != null || role != null)
-                {
-                    errorStringBuilder.Append(" by conditions:");
-                    if (name != null)
-                        errorStringBuilder.Append($"\nName like: {name}");
-                    if (role != null)
-                        errorStringBuilder.Append($"\nRole: {role}");
-                }
-
-                throw new UserNotFoundException(errorStringBuilder.ToString());
-            }
 
             return models;
         }

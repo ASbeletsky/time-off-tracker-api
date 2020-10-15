@@ -27,7 +27,7 @@ namespace TimeOffTracker.WebApi.Controllers
         [HttpGet]
         public async Task<IEnumerable<UserApiModel>> GetAll([FromQuery] string name = null, [FromQuery] string role = null)
         {
-            var users = await _userService.GetUsersByConditions(name, role);
+            var users = await _userService.GetUsers(name, role);
 
             return users;
         }
