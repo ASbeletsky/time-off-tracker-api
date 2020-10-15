@@ -8,7 +8,7 @@ namespace BusinessLogic.Services.Interfaces
     {
         Task<UserApiModel> GetUser(int id);
         Task<IEnumerable<UserApiModel>> GetUsers();
-        Task<IEnumerable<UserApiModel>> GetUsersByRole(string roleName);
+        Task<IEnumerable<UserApiModel>> GetUsersByConditions(string name, string role);
         Task UpdateUser(UserApiModel userModel);
         Task DeleteUser(int id);
     }

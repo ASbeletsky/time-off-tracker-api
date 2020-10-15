@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using TimeOffTracker.WebApi.Exceptions;
@@ -42,13 +43,31 @@ namespace BusinessLogic.Services
         public async Task<IEnumerable<UserApiModel>> GetUsers() =>
             _mapper.Map<IEnumerable<UserApiModel>>(await _repository.GetAllAsync());
 
-        public async Task<IEnumerable<UserApiModel>> GetUsersByRole(string roleName)
+
+        public async Task<IEnumerable<UserApiModel>> GetUsersByConditions(string name = null, string role = null)
         {
-            IEnumerable<User> users = await _repository.FilterAsync(user => user.Role == roleName);
+            Expression<Func<User, bool>> condition = user => 
+                (name == null || (user.FirstName + " " + user.LastName).ToLower().Contains(name.ToLower())) 
+                && (role == null || user.Role == role);
+
+
+            IEnumerable<User> users = await _repository.FilterAsync(condition);
             IEnumerable<UserApiModel> models = _mapper.Map<IEnumerable<UserApiModel>>(users);
 
-            if(!models.Any())
-                throw new UserNotFoundException($"Can't find users in role: {roleName}");
+            if (!models.Any())
+            {
+                StringBuilder errorStringBuilder = new StringBuilder("Can't find users");
+                if (name != null || role != null)
+                {
+                    errorStringBuilder.Append(" by conditions:");
+                    if (name != null)
+                        errorStringBuilder.Append($"\nName like: {name}");
+                    if (role != null)
+                        errorStringBuilder.Append($"\nRole: {role}");
+                }
+
+                throw new UserNotFoundException(errorStringBuilder.ToString());
+            }
 
             return models;
         }
