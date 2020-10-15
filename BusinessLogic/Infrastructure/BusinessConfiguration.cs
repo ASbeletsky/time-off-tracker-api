@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BusinessLogic.Services;
+using BusinessLogic.Services.Interfaces;
 using DataAccess.Context;
 using DataAccess.Infrastructure;
 using DataAccess.Repository;
@@ -22,7 +23,7 @@ namespace BusinessLogic.Infrastructure
 
             services.AddScoped<IRepository<User, int>, UserRepository>();
 
-            services.AddScoped(typeof(UserService));
+            services.AddScoped<IUserService, UserService>();
 
             services.AddSingleton(provider => new MapperConfiguration(cfg =>
             {

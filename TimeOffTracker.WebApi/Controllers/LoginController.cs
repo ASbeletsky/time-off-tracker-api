@@ -8,20 +8,20 @@ namespace TimeOffTracker.WebApi.Controllers
 {
     [ApiController]
     [AllowAnonymous]
-    [Route("auth/[controller]")]
+    [Route("auth/token")]
     public class LoginController : BaseController
     {
-        private readonly UserService _userService;
+        private readonly UserTokenService _userService;
         private ILogger<LoginController> _logger;
 
-        public LoginController(UserService userService, ILogger<LoginController> logger)
+        public LoginController(UserTokenService userService, ILogger<LoginController> logger)
         {
             _userService = userService;
             _logger = logger;
         }
 
         [HttpPost]
-        public IActionResult Login([FromForm]AuthenticateModel model)
+        public IActionResult Login([FromForm]LoginModel model)
         {
             LoggedInUserModel userWithJWT = _userService.Authenticate(model.Username, model.Password);
 

@@ -6,9 +6,9 @@ namespace DataAccess.Static.Context
 {
     public static class RoleName
     {
-        public static string manager = "Manager";
-        public static string accountant = "Accountant";
-        public static string employee = "Employee";
-        public static string admin = "Admin";
+        public const string manager = "Manager";
+        public const string accountant = "Accountant";
+        public const string employee = "Employee";
+        public const string admin = "Admin";
     }
 }
