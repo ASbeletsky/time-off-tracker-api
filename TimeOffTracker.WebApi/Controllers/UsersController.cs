@@ -41,7 +41,7 @@ namespace TimeOffTracker.WebApi.Controllers
 
         [HttpPut]
         [Authorize(Roles = RoleName.admin)]
-        public async Task<IActionResult> UpdateUser([FromForm] UserApiModel user)
+        public async Task<IActionResult> UpdateUser([FromBody] UserApiModel user)
         {
             await _userService.UpdateUser(user);
 
