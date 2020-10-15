@@ -50,6 +50,7 @@ namespace DataAccess.Repository
                        Id = user.Id,
                        FirstName = user.FirstName,
                        LastName = user.LastName,
+                       UserName = user.UserName,
                        Role = role.Name
                    };
         }
