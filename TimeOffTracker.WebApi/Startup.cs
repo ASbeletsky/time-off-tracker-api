@@ -37,7 +37,7 @@ namespace TimeOffTracker.WebApi
                 mvcOtions.EnableEndpointRouting = false;
             });
 
-            services.AddScoped(typeof(UserService));
+            services.AddScoped(typeof(UserTokenService));
 
             services.AddScoped<ExceptionFilter>();
 
