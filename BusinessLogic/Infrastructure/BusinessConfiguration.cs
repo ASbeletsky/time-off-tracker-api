@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using ApiModels.Models;
+using AutoMapper;
 using BusinessLogic.Services;
 using BusinessLogic.Services.Interfaces;
 using DataAccess.Context;
@@ -18,10 +19,10 @@ namespace BusinessLogic.Infrastructure
     public static class BusinessConfiguration
     {
         public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
-        {            
-            services.AddTransient(typeof(TimeOffRequestService));
+        {
 
-            services.AddScoped<IRepository<User, int>, UserRepository>();
+            DataAccessConfiguration.ConfigureServices(services, configuration);
+            //services.AddScoped<IRepository<User, int>, UserRepository>();
 
             services.AddScoped<IUserService, UserService>();
 
@@ -30,7 +31,9 @@ namespace BusinessLogic.Infrastructure
                 cfg.AddProfile(new MapperProfile());
             }).CreateMapper());
 
-            DataAccessConfiguration.ConfigureServices(services, configuration);
+
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ITimeOffRequestService<TimeOffRequestApiModel>, TimeOffRequestService>();
         }
         public static async Task ConfigureIdentityInicializerAsync(IServiceProvider provider)
         {

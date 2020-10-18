@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace ApiModels.Models
@@ -11,16 +12,22 @@ namespace ApiModels.Models
             Reviews = new List<TimeOffRequestReviewApiModel>();
         }
         public int Id { get; set; }
+        [Required]
         public int TypeId { get; set; }
+        [Required]
         public DateTime StartDate { get; set; }
+        [Required]
         public DateTime EndDate { get; set; }
+        [Required]
         public ICollection<TimeOffRequestReviewApiModel> Reviews { get; set; }
         public bool HasAccountingReviewPassed { get; set; }
         public string Comment { get; set; }
         public string ProjectRole { get; set; }
+        [Required]
         public int StateId { get; set; }
         public int DurationId { get; set; }
         public UserApiModel User { get; set; }
+        [Required]
         public int UserId { get; set; }
     }
 }

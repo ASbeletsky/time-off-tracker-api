@@ -40,7 +40,7 @@ namespace TimeOffTracker.WebApi.Controllers
         }
 
         [HttpPut]
-        [Authorize(Roles = RoleName.admin)]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateUser([FromBody] UserApiModel user)
         {
             await _userService.UpdateUser(user);
@@ -51,7 +51,7 @@ namespace TimeOffTracker.WebApi.Controllers
         }
 
         [HttpDelete("{userid:int}")]
-        [Authorize(Roles = RoleName.admin)]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(int userId)
         {
             await _userService.DeleteUser(userId);

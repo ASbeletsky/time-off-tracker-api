@@ -16,10 +16,11 @@ namespace DataAccess.Infrastructure
     {
         public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-
-            services.AddTransient(typeof(TimeOffRequestRepository));
-            services.AddTransient(typeof(TimeOffRequestReviewRepository));
-            services.AddTransient(typeof(UserRepository));
+            services.AddScoped<IRepository<User, int>, UserRepository>();
+            services.AddScoped<IRepository<TimeOffRequest, int>, TimeOffRequestRepository>();
+           
+            services.AddScoped(typeof(TimeOffRequestReviewRepository));
+            //services.AddTransient(typeof(UserRepository));
 
             services.AddDbContext<TimeOffTrackerContext>(option =>
                 option.UseSqlServer(configuration.GetConnectionString("defaultConnection")));
