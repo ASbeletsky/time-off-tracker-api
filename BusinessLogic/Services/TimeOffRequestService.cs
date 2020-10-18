@@ -75,9 +75,8 @@ namespace BusinessLogic.Services
             if(result != null)
             {
                 result.State = VacationRequestState.New;
-            }
-
-            await _repository.UpdateAsync(result);
+                await _repository.UpdateAsync(result);
+            }          
         }
         public async Task<IReadOnlyCollection<TimeOffRequestApiModel>> GetAllAsync(int userId, DateTime start, DateTime end, int stateId, int typeId)
         {
