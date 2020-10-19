@@ -33,7 +33,7 @@ namespace BusinessLogic.Infrastructure
 
 
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<ITimeOffRequestService<TimeOffRequestApiModel>, TimeOffRequestService>();
+            services.AddScoped<ITimeOffRequestService, TimeOffRequestService>();
         }
         public static async Task ConfigureIdentityInicializerAsync(IServiceProvider provider)
         {
