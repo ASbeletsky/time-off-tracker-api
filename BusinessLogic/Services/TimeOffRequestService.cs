@@ -1,10 +1,12 @@
 ﻿using ApiModels.Models;
 using AutoMapper;
+using BusinessLogic.Notifications;
 using BusinessLogic.Services.Interfaces;
 using DataAccess.Repository;
 using DataAccess.Repository.Interfaces;
 using Domain.EF_Models;
 using Domain.Enums;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,11 +18,13 @@ namespace BusinessLogic.Services
     public class TimeOffRequestService : ITimeOffRequestService<TimeOffRequestApiModel>
     {
         IRepository<TimeOffRequest, int> _repository;
+        IMediator _mediator;
         IMapper _mapper;
 
-        public TimeOffRequestService(IRepository<TimeOffRequest, int> repository, IMapper mapper)
+        public TimeOffRequestService(IRepository<TimeOffRequest, int> repository, IMediator mediator, IMapper mapper)
         {
             _repository = repository;
+            _mediator = mediator;
             _mapper = mapper;
         }
 
@@ -75,9 +79,11 @@ namespace BusinessLogic.Services
             if(result != null)
             {
                 result.State = VacationRequestState.New;
-            }
+                await _repository.UpdateAsync(result);
 
-            await _repository.UpdateAsync(result);
+                var notification = new RequestUpdatedNotification() { Request = result };
+                await _mediator.Send(notification);
+            }
         }
         public async Task<IReadOnlyCollection<TimeOffRequestApiModel>> GetAllAsync(int userId, DateTime start, DateTime end, int stateId, int typeId)
         {

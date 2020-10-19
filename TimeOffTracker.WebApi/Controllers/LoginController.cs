@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using TimeOffTracker.WebApi.ViewModels;
 using TimeOffTracker.WebApi.Services;
 using Microsoft.Extensions.Logging;
+using MediatR;
+using BusinessLogic.Notifications;
+using System.Threading.Tasks;
 
 namespace TimeOffTracker.WebApi.Controllers
 {
@@ -12,11 +15,13 @@ namespace TimeOffTracker.WebApi.Controllers
     public class LoginController : BaseController
     {
         private readonly UserTokenService _userService;
+        private readonly IMediator _mediator;
         private ILogger<LoginController> _logger;
 
-        public LoginController(UserTokenService userService, ILogger<LoginController> logger)
+        public LoginController(UserTokenService userService, IMediator mediator, ILogger<LoginController> logger)
         {
             _userService = userService;
+            _mediator = mediator;
             _logger = logger;
         }
 
@@ -29,8 +34,16 @@ namespace TimeOffTracker.WebApi.Controllers
                 return BadRequest(new { message = "Username or password is incorrect" });
 
             _logger.LogInformation("Login succes. User: {User}", model.Username);
-
+            
             return Ok(userWithJWT);
+        }
+
+        [HttpPost("message")]
+        public async Task<IActionResult> Send([FromForm] string message)
+        {
+            await _mediator.Publish(new TestNotification() { Message = message });
+
+            return Ok();
         }
     }
 }
