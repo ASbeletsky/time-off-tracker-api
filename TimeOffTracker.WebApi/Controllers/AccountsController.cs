@@ -32,7 +32,7 @@ namespace TimeOffTracker.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromForm] RegisterViewModel model)
+        public async Task<IActionResult> Post([FromBody] RegisterViewModel model)
         {
             if (ModelState.IsValid)
             {
