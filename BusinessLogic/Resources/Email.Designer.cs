@@ -106,11 +106,20 @@ namespace BusinessLogic.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to HtmlTemplates/EmailAboutRequestUpdate_ru.html.
+        ///   Looks up a localized string similar to EmailTemplates/EmailAboutRequestUpdateBody_ru.
         /// </summary>
-        internal static string UpdatedBody {
+        internal static string UpdatedMailBody {
             get {
-                return ResourceManager.GetString("UpdatedBody", resourceCulture);
+                return ResourceManager.GetString("UpdatedMailBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to EmailTemplates/EmailAboutRequestUpdateHead.html.
+        /// </summary>
+        internal static string UpdatedMailHead {
+            get {
+                return ResourceManager.GetString("UpdatedMailHead", resourceCulture);
             }
         }
         

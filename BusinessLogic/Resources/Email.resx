@@ -136,8 +136,12 @@
     <value>[Отпуск] Отклонена: {0} - {1} - {2}-{3}</value>
     <comment>Тема письма про отклоненную заявку</comment>
   </data>
-  <data name="UpdatedBody" xml:space="preserve">
-    <value>HtmlTemplates/EmailAboutRequestUpdate_ru.html</value>
+  <data name="UpdatedMailBody" xml:space="preserve">
+    <value>EmailTemplates/EmailAboutRequestUpdateBody_ru</value>
+    <comment>Путь к шаблону письма про необходимость рассмотреть заявку</comment>
+  </data>
+  <data name="UpdatedMailHead" xml:space="preserve">
+    <value>EmailTemplates/EmailAboutRequestUpdateHead.html</value>
     <comment>Путь к шаблону письма про необходимость рассмотреть заявку</comment>
   </data>
   <data name="UpdatedTheme" xml:space="preserve">
