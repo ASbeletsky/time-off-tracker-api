@@ -57,7 +57,7 @@ namespace TimeOffTracker.WebApi.Controllers
         }
 
         [HttpPost("/requests")]
-        public async Task <HttpStatusCode> Post ([FromForm] TimeOffRequestApiModel model)
+        public async Task <HttpStatusCode> Post ([FromBody] TimeOffRequestApiModel model)
         {
             if (!ModelState.IsValid)
                 return HttpStatusCode.BadRequest;
@@ -79,7 +79,7 @@ namespace TimeOffTracker.WebApi.Controllers
         }
 
         [HttpPut("/requests/{requestId}")]
-        public async Task Put(int requestId, [FromForm] TimeOffRequestApiModel newModel)   //FromBody not coming
+        public async Task Put(int requestId, [FromBody] TimeOffRequestApiModel newModel)   
         {
             await _service.UpdateAsync(requestId, newModel);
         }
