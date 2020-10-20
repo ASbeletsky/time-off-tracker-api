@@ -76,12 +76,8 @@ namespace BusinessLogic.NotificationHandlers
                 address = users.FirstOrDefault().Email;
             }
 
-            string bodyPath = _resourceManager.GetString("UpdatedBody");
-            string body = string.Empty;
-            using (StreamReader SourceReader = File.OpenText(bodyPath))
-            {
-                body = SourceReader.ReadToEnd();
-            }
+            string head = await GetMailHead();
+            string body = await GetMailBody();
 
             body = string.Format(body,
                 model.AuthorFullName,       //{0} : Author
@@ -93,7 +89,31 @@ namespace BusinessLogic.NotificationHandlers
                 model.ApprovedFullNames     //{6} : ApprovedBy 
                 );                          //{...}: references for button
 
-            await _mailer.SendEmailAsync(address, theme, body);
+            await _mailer.SendEmailAsync(address, theme, head + body);
+        }
+
+        private async Task<string> GetMailHead()
+        {
+            string bodyHeadPath = _resourceManager.GetString("UpdatedMailHead");
+            string head = string.Empty;
+            using (StreamReader SourceReader = File.OpenText(bodyHeadPath))
+            {
+                head = await SourceReader.ReadToEndAsync();
+            }
+
+            return head;
+        }
+
+        private async Task<string> GetMailBody()
+        {
+            string bodyPath = _resourceManager.GetString("UpdatedMailBody");
+            string body = string.Empty;
+            using (StreamReader SourceReader = File.OpenText(bodyPath))
+            {
+                body = await SourceReader.ReadToEndAsync();
+            }
+
+            return body;
         }
     }
 }
