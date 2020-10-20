@@ -1,21 +1,22 @@
 ﻿using ApiModels.Models;
 using AutoMapper;
+using BusinessLogic.Exceptions;
 using BusinessLogic.Notifications;
 using BusinessLogic.Services.Interfaces;
-using DataAccess.Repository;
 using DataAccess.Repository.Interfaces;
+using DataAccess.Static.Context;
 using Domain.EF_Models;
 using Domain.Enums;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace BusinessLogic.Services
 {
-    public class TimeOffRequestService : ITimeOffRequestService<TimeOffRequestApiModel>
+    public class TimeOffRequestService : ITimeOffRequestService
     {
         IRepository<TimeOffRequest, int> _repository;
         IMediator _mediator;
@@ -30,96 +31,123 @@ namespace BusinessLogic.Services
 
         public async Task AddAsync(TimeOffRequestApiModel obj, int userId)
         {
-            var userRequests = await _repository.FilterAsync(x => x.UserId == userId);
-
-            foreach (var item in userRequests)
-                if (IntersectionDates(obj.StartDate, obj.EndDate, item.StartDate, item.EndDate))
-                    return;
-
-            if(obj.TypeId == (int)TimeOffType.PaidLeave || obj.TypeId == (int)TimeOffType.AdministrativeUnpaidLeave || obj.TypeId == (int)TimeOffType.SickLeaveWithDocuments || obj.TypeId == (int)TimeOffType.SickLeaveWithoutDocuments)
+            if (await CheckNewRequest(obj, userId))
             {
-                if (String.IsNullOrEmpty(obj.Comment))
-                    return;
-            }
+                TimeOffRequest request = _mapper.Map<TimeOffRequest>(obj);
+                await _repository.CreateAsync(request);
 
-
-            if (obj.TypeId == (int)TimeOffType.PaidLeave || obj.TypeId == (int)TimeOffType.AdministrativeUnpaidLeave || obj.TypeId == (int)TimeOffType.StudyLeave)
-            {
-                if (obj.Reviews.FirstOrDefault().Reviewer.Role == "Accountant")
-                {
-                    if (obj.Reviews.Skip(1).All(x => x.Reviewer.Role == "Manager"))
-                    {
-                        if (!String.IsNullOrEmpty(obj.ProjectRole))
-                        {
-                            await _repository.CreateAsync(_mapper.Map<TimeOffRequest>(obj));
-                        }
-                    }
-                }
-            }
-            else if (obj.TypeId == (int)TimeOffType.ForceMajeureAdministrativeLeave || obj.TypeId == (int)TimeOffType.SocialLeave)
-            {
-                if (obj.Reviews.FirstOrDefault(x => x.Reviewer.Role == "Accountant") != null)
-                {
-                    await _repository.CreateAsync(_mapper.Map<TimeOffRequest>(obj));
-                }
-            }
-            else if (obj.TypeId == (int)TimeOffType.SickLeaveWithDocuments || obj.TypeId == (int)TimeOffType.SickLeaveWithoutDocuments)
-            {
-                if (obj.Reviews.FirstOrDefault(x => x.Reviewer.Role == "Accountant") != null)
-                {
-                    if (obj.HasAccountingReviewPassed == true || obj.HasAccountingReviewPassed == false)
-                    {
-                        await _repository.CreateAsync(_mapper.Map<TimeOffRequest>(obj));
-                    }
-                }
-            }
-
-            var result = await _repository.FindAsync(obj.Id);
-
-            if(result != null)
-            {
-                result.State = VacationRequestState.New;
-                await _repository.UpdateAsync(result);
-
-                var notification = new RequestUpdatedNotification() { Request = result };
-                await _mediator.Send(notification);
+                var notification = new RequestUpdatedNotification { Request = request };
+                await _mediator.Publish(notification);
             }
         }
-        public async Task<IReadOnlyCollection<TimeOffRequestApiModel>> GetAllAsync(int userId, DateTime start, DateTime end, int stateId, int typeId)
-        {
-            return (_mapper.Map<IReadOnlyCollection<TimeOffRequestApiModel>>(await _repository.FilterAsync(x => x.UserId == userId && x.StartDate == start
-                && x.EndDate == end && x.State == (VacationRequestState)Enum.GetValues(typeof(VacationRequestState)).GetValue(stateId)
-                && x.Type == (TimeOffType)Enum.GetValues(typeof(TimeOffType)).GetValue(typeId))).ToList());
-        }
-        public async Task<TimeOffRequestApiModel> GetByIdAsync(int userId, int requestId)
-        {
-            return _mapper.Map<TimeOffRequestApiModel>(await _repository.FindAsync(x => x.UserId == userId && x.Id== requestId));
-        }
-        public async Task UpdateAsync(int userId, TimeOffRequestApiModel newModel)
-        {
-            var requestFromDb = await _repository.FindAsync(userId);
 
-            if (requestFromDb.State == VacationRequestState.InProgress ||
-                requestFromDb.State == VacationRequestState.Approved ||
-                requestFromDb.State == VacationRequestState.Rejected)
-                return;
+        public async Task<IReadOnlyCollection<TimeOffRequestApiModel>> GetAllAsync(int userId, string start, string end, int stateId, int typeId)
+        {
+            try
+            {
+                Expression<Func<TimeOffRequest, bool>> condition = request =>
+                    (userId == 0 || request.UserId == userId)
+                    && (start == null || request.StartDate.Date == DateTime.Parse(start).Date)
+                    && (end == null || request.EndDate.Date == DateTime.Parse(end).Date)
+                    && (stateId == 0 || (int)request.State == stateId) 
+                    && (typeId == 0 || (int)request.Type == typeId); 
 
-            requestFromDb.StartDate = newModel.StartDate;
-            requestFromDb.EndDate = newModel.EndDate;
-            requestFromDb.Comment = newModel.Comment;
+                return _mapper.Map<IReadOnlyCollection<TimeOffRequestApiModel>>(await _repository.FilterAsync(condition));
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            return null;
+        }
+        public async Task<TimeOffRequestApiModel> GetByIdAsync(int requestId)
+        {
+            return _mapper.Map<TimeOffRequestApiModel>(await _repository.FindAsync(x => x.Id == requestId));
+        }
+        public async Task<TimeOffRequestApiModel> GetByIdAsync(int uderId, int requestId)
+        {
+            return _mapper.Map<TimeOffRequestApiModel>(await _repository.FindAsync(x => x.UserId == uderId && x.Id == requestId));
+        }
+
+        public async Task UpdateAsync(int requestId, TimeOffRequestApiModel newModel)
+        {
+            var requestFromDb = await _repository.FindAsync(requestId);
+
+            if (requestFromDb.State == VacationRequestState.New)
+            {
+                if (await CheckNewRequest(newModel, requestFromDb.UserId))
+                {
+                    requestFromDb.Comment = newModel.Comment;
+                    requestFromDb.Duration = (TimeOffDuration)newModel.DurationId;
+                    requestFromDb.EndDate = newModel.EndDate;
+                    requestFromDb.StartDate = newModel.StartDate;
+                    requestFromDb.HasAccountingReviewPassed = false;
+                    requestFromDb.Reviews = _mapper.Map<ICollection<TimeOffRequestReview>>(newModel.Reviews);
+                    requestFromDb.State = (VacationRequestState)newModel.StateId;
+                    requestFromDb.Type = (TimeOffType)newModel.TypeId;
+                }
+            }
+           else if(requestFromDb.State == VacationRequestState.InProgress)
+           {
+               
+           }
+           else if (requestFromDb.State == VacationRequestState.Approved)
+           {
+                if(requestFromDb.EndDate.Date > DateTime.Now.Date)
+                    throw new ConflictException("End date is later than current");
+
+                var userRequests = await _repository.FilterAsync(x => x.UserId == requestFromDb.UserId);
+
+                foreach (var item in userRequests)
+                    if (IntersectionDates(newModel.StartDate, newModel.EndDate, item.StartDate, item.EndDate))
+                        throw new ConflictException("Have a vacation on these dates");
+
+                if (String.IsNullOrEmpty(newModel.Comment))
+                    throw new RequiredArgumentNullException("Comment field is empty");
+
+                //if Reviewers
+
+                requestFromDb.EndDate = newModel.EndDate;
+                requestFromDb.StartDate = newModel.StartDate;
+                requestFromDb.Comment = newModel.Comment;
+                requestFromDb.State = VacationRequestState.Rejected;
+                //reviewers update
+                await Duplicate(_mapper.Map<TimeOffRequestApiModel>(requestFromDb));
+           }
 
             await _repository.UpdateAsync(requestFromDb);
+
+            var notification = new RequestUpdatedNotification { Request = requestFromDb };
+            await _mediator.Publish(notification);
         }
 
-        public async Task DeleteAsync(int userId, int requestId)
+        public async Task Duplicate(TimeOffRequestApiModel duplicateModel)
         {
-            if (await _repository.FindAsync(x => x.UserId == userId && x.Id==requestId) != null)
+            await this.AddAsync(new TimeOffRequestApiModel
+            {
+                DurationId = duplicateModel.DurationId,
+                Comment = duplicateModel.Comment,
+                StartDate = duplicateModel.StartDate,
+                EndDate = duplicateModel.EndDate,
+                HasAccountingReviewPassed = duplicateModel.HasAccountingReviewPassed,
+                Reviews = duplicateModel.Reviews, //обнулить
+                StateId = duplicateModel.StateId,
+                TypeId = duplicateModel.TypeId,
+                UserId = duplicateModel.UserId
+            }, duplicateModel.UserId);
+        }
+
+        public async Task DeleteAsync(int requestId)
+        {
+            if (await _repository.FindAsync(x => x.Id == requestId) != null)
                 await _repository.DeleteAsync(requestId);
         }
 
         public async Task RejectedAsync(int userId, int requestId)
         {
-            var requestFromDb = await _repository.FindAsync(x => x.UserId == userId && x.Id== requestId);
+            var requestFromDb = await _repository.FindAsync(x => x.UserId == userId && x.Id == requestId);
+
             if (requestFromDb != null)
             {
                 requestFromDb.State = VacationRequestState.Rejected;
@@ -130,9 +158,48 @@ namespace BusinessLogic.Services
         private bool IntersectionDates(DateTime beginDate1, DateTime endDate1, DateTime beginDate2, DateTime endDate2)
         {
             if (beginDate2 > endDate1 || endDate2 < beginDate1)
-                return false; 
+                return false;
             else
                 return true;
+        }
+
+        private bool ValidateAccountingReviewer(UserApiModel reviewer)
+        {
+            if(reviewer != null)
+             return reviewer.Role == RoleName.accountant ? true : false;
+          
+                return false;
+        }
+
+        private bool ValidateManagerReviewers(ICollection<TimeOffRequestReviewApiModel> reviewers, int requestTypeId)
+        {
+            if(reviewers.Count>0)
+                return reviewers.All(x=>x.Reviewer.Role == RoleName.manager) ? true : false;
+
+            return false;
+        }
+
+        private async Task<bool> CheckNewRequest(TimeOffRequestApiModel obj, int userId)
+        {
+            obj.StateId = (int)VacationRequestState.New;
+
+            var userRequests = await _repository.FilterAsync(x => x.UserId == userId);
+
+            foreach (var item in userRequests)
+                if (IntersectionDates(obj.StartDate, obj.EndDate, item.StartDate, item.EndDate))
+                    throw new ConflictException("Have a vacation on these dates");
+
+            if (obj.TypeId == (int)TimeOffType.PaidLeave || obj.TypeId == (int)TimeOffType.AdministrativeUnpaidLeave || obj.TypeId == (int)TimeOffType.SickLeaveWithDocuments || obj.TypeId == (int)TimeOffType.SickLeaveWithoutDocuments)
+                if (String.IsNullOrEmpty(obj.Comment))
+                    throw new RequiredArgumentNullException("Comment field is empty");
+
+            if (!ValidateAccountingReviewer(_mapper.Map<UserApiModel>(obj.Reviews.FirstOrDefault())))
+                throw new NoReviewerException("Not defined accounting");
+
+            if (!ValidateManagerReviewers(obj.Reviews.Skip(1).ToList(), obj.TypeId))
+                throw new NoReviewerException("Not all managers defined");
+
+            return true;
         }
     }
 }

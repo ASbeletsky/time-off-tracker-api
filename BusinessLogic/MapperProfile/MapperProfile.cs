@@ -35,6 +35,9 @@ namespace TimeOffTracker.WebApi.MapperProfile
                 .ForMember(request => request.TypeId, opt => opt.MapFrom(model => (int)model.Type))
                 .ForMember(request => request.StateId, opt => opt.MapFrom(model => (int)model.State))
                 .ForMember(request => request.DurationId, opt => opt.MapFrom(model => (int)model.Duration));
+
+            CreateMap<TimeOffRequestReview, TimeOffRequestReviewApiModel>();
+            CreateMap<TimeOffRequestReviewApiModel, TimeOffRequestReview>();
         }
     }
 }

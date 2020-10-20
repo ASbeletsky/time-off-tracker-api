@@ -22,7 +22,6 @@ namespace ApiModels.Models
         public ICollection<TimeOffRequestReviewApiModel> Reviews { get; set; }
         public bool HasAccountingReviewPassed { get; set; }
         public string Comment { get; set; }
-        public string ProjectRole { get; set; }
         [Required]
         public int StateId { get; set; }
         public int DurationId { get; set; }
