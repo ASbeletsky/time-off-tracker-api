@@ -61,6 +61,15 @@ namespace BusinessLogic.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Бухгалтерия.
+        /// </summary>
+        internal static string Accountant {
+            get {
+                return ResourceManager.GetString("Accountant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Отпуск] Заявка утверждена: {0} - {1}-{2}.
         /// </summary>
         internal static string ApprovedAuthorTheme {

@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Accountant" xml:space="preserve">
+    <value>Бухгалтерия</value>
+  </data>
   <data name="ApprovedAuthorTheme" xml:space="preserve">
     <value>[Отпуск] Заявка утверждена: {0} - {1}-{2}</value>
     <comment>Тема письма про утвержденную заявку для автора</comment>

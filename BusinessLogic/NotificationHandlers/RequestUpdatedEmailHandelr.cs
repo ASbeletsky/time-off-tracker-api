@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace BusinessLogic.NotificationHandlers
 {
-    class RequesUpdatedEmailHandelr : INotificationHandler<RequestUpdatedNotification>
+    class RequestUpdatedEmailHandelr : INotificationHandler<RequestUpdatedNotification>
     {
         private const string resourceFile = @"BusinessLogic.Resources.Email";
         ResourceManager _resourceManager;
@@ -28,7 +28,7 @@ namespace BusinessLogic.NotificationHandlers
         IMapper _mapper;
         IEmailService _mailer;
 
-        public RequesUpdatedEmailHandelr(IRepository<TimeOffRequestReview, int> revRepository, UserManager<User> userManager, IMapper mapper, IEmailService mailer)
+        public RequestUpdatedEmailHandelr(IRepository<TimeOffRequestReview, int> revRepository, UserManager<User> userManager, IMapper mapper, IEmailService mailer)
         {
             _resourceManager = new ResourceManager(resourceFile, Assembly.GetExecutingAssembly());
             _reviewRepository = revRepository;
@@ -57,17 +57,17 @@ namespace BusinessLogic.NotificationHandlers
                 List<string> approvedPeopleNames = new List<string>(); 
                 foreach (TimeOffRequestReview review in reviews)
                 {
-                    StringBuilder sb = new StringBuilder(50);
+                    StringBuilder sb = new StringBuilder(50).Append(_resourceManager.GetString("Accountant"));
                     if (review.IsApproved) //collect names for approved list
                     {
-                        sb.Append(review.Reviewer.FirstName + " " + review.Reviewer.LastName).Append(", ");
+                        sb.Append(", ").Append(review.Reviewer.FirstName + " " + review.Reviewer.LastName);
                     }
                     else // next manager in reviews
                     {
                         address = review.Reviewer.Email;
                         break;
                     }
-                    model.ApproovedFullNames = sb.Remove(sb.Length-2,2).ToString();
+                    model.ApprovedFullNames = sb.ToString();
                 }
             }
             else //Accountant not approved
@@ -83,16 +83,15 @@ namespace BusinessLogic.NotificationHandlers
                 body = SourceReader.ReadToEnd();
             }
 
-            //build body
-            /*string body = string.Format(body,
-            //{0} : Author
-            //{1} : Type  
-            //{2} : StartDate  
-            //{3} : EndDate  
-            //{4} : Duration  
-            //{5} : Comment  
-            //{6} : ApprovedBy  
-            )*/
+            body = string.Format(body,
+                model.AuthorFullName,       //{0} : Author
+                model.RequestType,          //{1} : RequestType  
+                model.StartDate,            //{2} : StartDate  
+                model.EndDate,              //{3} : EndDate 
+                model.Duration,             //{4} : Duration 
+                model.Comment,              //{5} : Comment
+                model.ApprovedFullNames     //{6} : ApprovedBy 
+                );                          //{...}: references for button
 
             await _mailer.SendEmailAsync(address, theme, body);
         }

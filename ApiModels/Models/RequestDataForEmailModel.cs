@@ -10,7 +10,7 @@ namespace ApiModels.Models
         public string EndDate { get; set; }
         public string Duration { get; set; }
         public string Comment { get; set; }
-        public string ApproovedFullNames { get; set; }
+        public string ApprovedFullNames { get; set; }
         public string RejectedBy { get; set; }
         public string RejectComment { get; set; }
     }
