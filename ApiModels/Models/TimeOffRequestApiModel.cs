@@ -10,6 +10,7 @@ namespace ApiModels.Models
         public TimeOffRequestApiModel()
         {
             Reviews = new List<TimeOffRequestReviewApiModel>();
+            ReviewsIds = new List<int>();
         }
         public int Id { get; set; }
         [Required]
@@ -18,8 +19,10 @@ namespace ApiModels.Models
         public DateTime StartDate { get; set; }
         [Required]
         public DateTime EndDate { get; set; }
-        [Required]
+        
         public ICollection<TimeOffRequestReviewApiModel> Reviews { get; set; }
+        [Required]
+        public ICollection<int> ReviewsIds { get; set; }
         public bool HasAccountingReviewPassed { get; set; }
         public string Comment { get; set; }
         [Required]
@@ -28,5 +31,6 @@ namespace ApiModels.Models
         public UserApiModel User { get; set; }
         [Required]
         public int UserId { get; set; }
+        public int ParentRequestId { get; set; }
     }
 }

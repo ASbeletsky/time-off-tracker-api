@@ -18,8 +18,8 @@ namespace DataAccess.Infrastructure
         {
             services.AddScoped<IRepository<User, int>, UserRepository>();
             services.AddScoped<IRepository<TimeOffRequest, int>, TimeOffRequestRepository>();
-           
-            services.AddScoped(typeof(TimeOffRequestReviewRepository));
+            services.AddScoped<IRepository<TimeOffRequestReview, int>, TimeOffRequestReviewRepository>();
+          
             //services.AddTransient(typeof(UserRepository));
 
             services.AddDbContext<TimeOffTrackerContext>(option =>

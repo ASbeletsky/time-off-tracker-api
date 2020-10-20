@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using ApiModels.Models;
 using BusinessLogic.Exceptions;
@@ -10,9 +11,12 @@ using BusinessLogic.Services;
 using BusinessLogic.Services.Interfaces;
 using Domain.EF_Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
+using TimeOffTracker.WebApi.Filters;
 
 namespace TimeOffTracker.WebApi.Controllers
 {
@@ -31,14 +35,15 @@ namespace TimeOffTracker.WebApi.Controllers
         }
 
         [Authorize(Roles = "Manager, Accountant, Admin")]
-        [HttpGet("/requests")]       
-        public async Task<IReadOnlyCollection<TimeOffRequestApiModel>> Get(int userId = 0, string startDate = null, string endDate = null, int stateId = 0, int typeId = 0)
+        [HttpGet("/requests")]
+        public async Task<IReadOnlyCollection<TimeOffRequestApiModel>> Get(int userId, DateTime? startDate = null, DateTime? endDate = null, int? stateId = null, int? typeId = null)
         {
-            return await _service.GetAllAsync(userId, startDate, endDate, stateId, typeId);         
+            return await _service.GetAllAsync(userId, startDate, endDate, stateId, typeId);
+
         }
 
         [HttpGet("/user/requests")]
-        public async Task<IReadOnlyCollection<TimeOffRequestApiModel>> Get(string startDate = null, string endDate = null, int stateId = 0, int typeId = 0)
+        public async Task<IReadOnlyCollection<TimeOffRequestApiModel>> Get(DateTime? startDate = null, DateTime? endDate = null, int? stateId = null, int? typeId = null)
         {
             return await _service.GetAllAsync(int.Parse(this.User.Identity.Name), startDate, endDate, stateId, typeId);
         }
@@ -56,31 +61,23 @@ namespace TimeOffTracker.WebApi.Controllers
             return await _service.GetByIdAsync(int.Parse(this.User.Identity.Name), requestId);
         }
 
+        [ServiceFilter(typeof(ExceptionFilter))]
         [HttpPost("/requests")]
-        public async Task <HttpStatusCode> Post ([FromBody] TimeOffRequestApiModel model)
+        public async Task<IActionResult> Post ([FromBody] TimeOffRequestApiModel model)
         {
             if (!ModelState.IsValid)
-                return HttpStatusCode.BadRequest;
-            else
-            {
-                try
-                {
-                    await _service.AddAsync(model, int.Parse(this.User.Identity.Name));
-                }
-                catch(Exception ex)
-                {
-                   if(ex is ConflictException)
-                        return HttpStatusCode.Conflict;
-                   else if (ex is RequiredArgumentNullException || ex is NoReviewerException)
-                        return HttpStatusCode.BadRequest;
-                }   
-            }
-            return HttpStatusCode.OK;
+                return BadRequest(ModelState.Values.SelectMany(v => v.Errors));
+                       
+                model.UserId = int.Parse(this.User.Identity.Name);
+                await _service.AddAsync(model);
+
+            return Accepted();
         }
 
         [HttpPut("/requests/{requestId}")]
         public async Task Put(int requestId, [FromBody] TimeOffRequestApiModel newModel)   
         {
+            newModel.UserId = int.Parse(this.User.Identity.Name);
             await _service.UpdateAsync(requestId, newModel);
         }
 

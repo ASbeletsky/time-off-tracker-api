@@ -34,6 +34,7 @@ namespace BusinessLogic.Infrastructure
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITimeOffRequestService, TimeOffRequestService>();
+            services.AddScoped<ITimeOffRequestReviewService, TimeOffRequestReviewService>();
         }
         public static async Task ConfigureIdentityInicializerAsync(IServiceProvider provider)
         {

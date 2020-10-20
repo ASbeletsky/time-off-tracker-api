@@ -22,38 +22,38 @@ namespace BusinessLogic.Services
     {
         IRepository<TimeOffRequest, int> _repository;
         IMapper _mapper;
+        ITimeOffRequestReviewService _timeOffRequestReviewService;
 
-        public TimeOffRequestService(IRepository<TimeOffRequest, int> repository, IMapper mapper)
+        public TimeOffRequestService(IRepository<TimeOffRequest, int> repository, IMapper mapper, ITimeOffRequestReviewService timeOffRequestReviewService)
         {
             _repository = repository;
             _mapper = mapper;
+            _timeOffRequestReviewService = timeOffRequestReviewService;
         }
 
-        public async Task AddAsync(TimeOffRequestApiModel obj, int userId)
+        public async Task AddAsync(TimeOffRequestApiModel obj)
         {
-            if(await CheckNewRequest(obj, userId))
-                await _repository.CreateAsync(_mapper.Map<TimeOffRequest>(obj));
-        }
+            await FillReviewers(obj);
 
-        public async Task<IReadOnlyCollection<TimeOffRequestApiModel>> GetAllAsync(int userId, string start, string end, int stateId, int typeId)
-        {
-            try
+            if (await CheckNewRequest(obj))
             {
+                obj.StateId = (int)VacationRequestState.New;
+                await _repository.CreateAsync(_mapper.Map<TimeOffRequest>(obj));
+            }
+        }
+
+        public async Task<IReadOnlyCollection<TimeOffRequestApiModel>> GetAllAsync(int userId, DateTime? start = null, DateTime? end = null, int? stateId = null, int? typeId = null)
+        {
+            
                 Expression<Func<TimeOffRequest, bool>> condition = request =>
-                    (userId == 0 || request.UserId == userId)
-                    && (start == null || request.StartDate.Date == DateTime.Parse(start).Date)
-                    && (end == null || request.EndDate.Date == DateTime.Parse(end).Date)
-                    && (stateId == 0 || (int)request.State == stateId) 
-                    && (typeId == 0 || (int)request.Type == typeId); 
+                    (request.UserId == userId)
+                    && (start == null || request.StartDate.Date == start)
+                    && (end == null || request.EndDate.Date == end)
+                    && (stateId == null || (int)request.State == stateId) 
+                    && (typeId == null || (int)request.Type == typeId); 
 
                 return _mapper.Map<IReadOnlyCollection<TimeOffRequestApiModel>>(await _repository.FilterAsync(condition));
-            }
-            catch (Exception ex)
-            {
-
-            }
-
-            return null;
+            
         }
         public async Task<TimeOffRequestApiModel> GetByIdAsync(int requestId)
         {
@@ -70,7 +70,7 @@ namespace BusinessLogic.Services
 
             if (requestFromDb.State == VacationRequestState.New)
             {
-                if (await CheckNewRequest(newModel, requestFromDb.UserId))
+                if (await CheckNewRequest(newModel))
                 {
                     requestFromDb.Comment = newModel.Comment;
                     requestFromDb.Duration = (TimeOffDuration)newModel.DurationId;
@@ -125,8 +125,9 @@ namespace BusinessLogic.Services
                 Reviews = duplicateModel.Reviews, //обнулить
                 StateId = duplicateModel.StateId,
                 TypeId = duplicateModel.TypeId,
-                UserId = duplicateModel.UserId
-            }, duplicateModel.UserId);
+                UserId = duplicateModel.UserId,
+                ParentRequestId = duplicateModel.Id
+            });
         }
 
         public async Task DeleteAsync(int requestId)
@@ -154,10 +155,10 @@ namespace BusinessLogic.Services
                 return true;
         }
 
-        private bool ValidateAccountingReviewer(UserApiModel reviewer)
+        private bool ValidateAccountingReviewer(TimeOffRequestReview review)
         {
-            if(reviewer != null)
-             return reviewer.Role == RoleName.accountant ? true : false;
+            if(review.Reviewer != null)
+             return review.Reviewer.Role == RoleName.accountant ? true : false;
           
                 return false;
         }
@@ -170,27 +171,34 @@ namespace BusinessLogic.Services
             return false;
         }
 
-        private async Task<bool> CheckNewRequest(TimeOffRequestApiModel obj, int userId)
-        {
-            obj.StateId = (int)VacationRequestState.New;
+        private async Task<bool> CheckNewRequest(TimeOffRequestApiModel obj)
+        {            
+            var userRequests = await _repository.FilterAsync(x => x.UserId == obj.Id);
 
-            var userRequests = await _repository.FilterAsync(x => x.UserId == userId);
-
-            foreach (var item in userRequests)
-                if (IntersectionDates(obj.StartDate, obj.EndDate, item.StartDate, item.EndDate))
+            if(userRequests.Count>0)
+                if(userRequests.Where((u => u.UserId == obj.Id && (obj.EndDate < u.StartDate || obj.StartDate > u.EndDate))).Any() == false)
                     throw new ConflictException("Have a vacation on these dates");
+
+            //if (!_repository.FilterAsync((u => u.UserId == obj.Id && (obj.EndDate < u.StartDate || obj.StartDate > u.EndDate))).Result.Any())
+            //    throw new ConflictException("Have a vacation on these dates");
 
             if (obj.TypeId == (int)TimeOffType.PaidLeave || obj.TypeId == (int)TimeOffType.AdministrativeUnpaidLeave || obj.TypeId == (int)TimeOffType.SickLeaveWithDocuments || obj.TypeId == (int)TimeOffType.SickLeaveWithoutDocuments)
                 if (String.IsNullOrEmpty(obj.Comment))
                     throw new RequiredArgumentNullException("Comment field is empty");
 
-            if (!ValidateAccountingReviewer(_mapper.Map<UserApiModel>(obj.Reviews.FirstOrDefault())))
+            if (!ValidateAccountingReviewer(_mapper.Map<TimeOffRequestReview>(obj.Reviews.FirstOrDefault())))
                 throw new NoReviewerException("Not defined accounting");
 
             if (!ValidateManagerReviewers(obj.Reviews.Skip(1).ToList(), obj.TypeId))
                 throw new NoReviewerException("Not all managers defined");
 
             return true;
+        }
+
+        private async Task FillReviewers(TimeOffRequestApiModel obj)
+        {
+            foreach (var item in obj.ReviewsIds)
+                obj.Reviews.Add(await _timeOffRequestReviewService.GetByIdAsync(item));
         }
     }
 }
