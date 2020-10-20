@@ -85,7 +85,7 @@ namespace TimeOffTracker.WebApi.Controllers
         }
 
         [Authorize(Roles = "Manager, Accountant, Admin")]
-        [HttpDelete("requests/{requestId}")]
+        [HttpDelete("/requests/{requestId}")]
         public async Task Delete(int requestId)
         {
             await _service.DeleteAsync(requestId);
