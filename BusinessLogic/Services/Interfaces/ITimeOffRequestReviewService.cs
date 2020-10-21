@@ -10,5 +10,6 @@ namespace BusinessLogic.Services.Interfaces
     {
         Task<TimeOffRequestReviewApiModel> GetByIdAsync(int reviewId);
         Task CreateAsync(TimeOffRequestReviewApiModel obj);
+        Task DeleteAsync(int id);
     }
 }

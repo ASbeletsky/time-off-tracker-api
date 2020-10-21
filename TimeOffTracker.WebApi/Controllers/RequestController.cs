@@ -23,7 +23,7 @@ namespace TimeOffTracker.WebApi.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class RequestController : ControllerBase
+    public class RequestController : BaseController
     {
         private ITimeOffRequestService _service;
         private readonly ILogger<RequestController> _logger;
@@ -61,7 +61,7 @@ namespace TimeOffTracker.WebApi.Controllers
             return await _service.GetByIdAsync(int.Parse(this.User.Identity.Name), requestId);
         }
 
-        [ServiceFilter(typeof(ExceptionFilter))]
+        
         [HttpPost("/requests")]
         public async Task<IActionResult> Post ([FromBody] TimeOffRequestApiModel model)
         {

@@ -35,12 +35,12 @@ namespace BusinessLogic.Services
 
         public async Task AddAsync(TimeOffRequestApiModel obj)
         {
-            await FillReviewers(obj);
+            FillReviewers(obj);
 
             if (await CheckNewRequest(obj))
             {
                 obj.StateId = (int)VacationRequestState.New;
-                var test = _mapper.Map<TimeOffRequest>(obj);
+                obj.HasAccountingReviewPassed = false;
                 await _repository.CreateAsync(_mapper.Map<TimeOffRequest>(obj));
             }
         }
@@ -73,23 +73,25 @@ namespace BusinessLogic.Services
 
             if (requestFromDb.State == VacationRequestState.New)
             {
+                FillReviewers(newModel);
+
                 if (await CheckNewRequest(newModel))
                     _mapper.Map(newModel, requestFromDb);
             }
            else if(requestFromDb.State == VacationRequestState.InProgress)
            {
+                //requestFromDb.Reviews = await UpdateReviewers(newModel);
+
+                ////foreach(var item in requestFromDb.Reviews)
+                ////    _timeOffRequestReviewService.Upd
+
                 //Reviewers
             }
             else if (requestFromDb.State == VacationRequestState.Approved)
            {
-                if(requestFromDb.EndDate.Date < DateTime.Now.Date)
-                    throw new ConflictException("End date is later than current");
+                if (await IntersectionDates(newModel))
+                    throw new ConflictException("Incorrect dates");
 
-                var userRequests = await _repository.FilterAsync(x => x.UserId == requestFromDb.UserId);
-
-                if (userRequests.Count > 0)
-                    if (userRequests.Where((u => u.UserId == newModel.Id && (newModel.EndDate < u.StartDate || newModel.StartDate > u.EndDate))).Any() == false)
-                        throw new ConflictException("Have a vacation on these dates");
 
                 if (String.IsNullOrEmpty(newModel.Comment))
                     throw new RequiredArgumentNullException("Comment field is empty");
@@ -101,15 +103,20 @@ namespace BusinessLogic.Services
                 requestFromDb.Comment = newModel.Comment;
                 requestFromDb.State = VacationRequestState.Rejected;
                 //reviewers update
-                await Duplicate(_mapper.Map<TimeOffRequestApiModel>(requestFromDb));
+                await Duplicate(_mapper.Map<TimeOffRequestApiModel>(requestFromDb), requestFromDb.Id);
            }
 
             await _repository.UpdateAsync(requestFromDb);
         }
 
-        public async Task Duplicate(TimeOffRequestApiModel duplicateModel)
+        public async Task Duplicate(TimeOffRequestApiModel duplicateModel, int parentId)
         {
             var newModel = new TimeOffRequest();
+            duplicateModel.ParentRequestId = parentId;
+            duplicateModel.StateId = (int)VacationRequestState.New;
+            duplicateModel.HasAccountingReviewPassed = false;
+            //duplicateModel.ReviewsIds = null;
+            //duplicateModel.Reviews = null;
             await _repository.CreateAsync(_mapper.Map(duplicateModel, newModel));
         }
 
@@ -131,29 +138,24 @@ namespace BusinessLogic.Services
         }
 
         private async Task<bool> ValidateAccountingReviewer(TimeOffRequestReview review)
-        {                          
-             review.Reviewer = _mapper.Map<User>(await _userService.GetUser(review.ReviewerId));
-             if (review.Reviewer != null)
-                return review.Reviewer.Role == RoleName.accountant ? true : false;
-            
-                return false;
+        {              
+
+            var accountantReview = _mapper.Map<User>(await _userService.GetUser(review.ReviewerId));
+           
+            return (accountantReview != null && accountantReview.Role==RoleName.accountant);
         }
 
-        private bool ValidateManagerReviewers(ICollection<TimeOffRequestReviewApiModel> reviewers, int requestTypeId)
+        private bool ValidateManagerReviewers(ICollection<TimeOffRequestReviewApiModel> reviews, int requestTypeId)
         {
-            if(reviewers.Count>0)
-                return reviewers.All(x=>x.Reviewer.Role == RoleName.manager) ? true : false;
+            var managerReviews = reviews.Select(x => _userService.GetUser(x.ReviewerId));
 
-            return false;
+            return managerReviews.All(x=>x.Result.Role==RoleName.manager);
         }
 
         private async Task<bool> CheckNewRequest(TimeOffRequestApiModel obj)
-        {            
-            var userRequests = await _repository.FilterAsync(x => x.UserId == obj.Id);
-
-            if(userRequests.Count>0)
-                if(userRequests.Where((u => u.UserId == obj.Id && (obj.EndDate < u.StartDate || obj.StartDate > u.EndDate))).Any() == false)
-                    throw new ConflictException("Have a vacation on these dates");
+        {
+            if(await IntersectionDates(obj))
+                throw new ConflictException("Incorrect dates");
 
             if (obj.TypeId == (int)TimeOffType.PaidLeave || obj.TypeId == (int)TimeOffType.AdministrativeUnpaidLeave || obj.TypeId == (int)TimeOffType.SickLeaveWithDocuments || obj.TypeId == (int)TimeOffType.SickLeaveWithoutDocuments)
                 if (String.IsNullOrEmpty(obj.Comment))
@@ -168,21 +170,37 @@ namespace BusinessLogic.Services
             return true;
         }
 
-        private async Task FillReviewers(TimeOffRequestApiModel obj)
+        private void FillReviewers(TimeOffRequestApiModel obj)
         {
            foreach(var item in obj.ReviewsIds)
            {
-                var d = item;
                 var rewiew = new TimeOffRequestReviewApiModel()
                 {
                     IsApproved = false,
-                    Reviewer = await _userService.GetUser(item),
-                    Request = obj
+                    ReviewerId = item,
+                    RequestId = obj.Id
                 };
 
-              
                obj.Reviews.Add(rewiew);
            }
+        }
+
+        //private async Task<ICollection<TimeOffRequestReview>> UpdateReviewers(TimeOffRequestApiModel newModel)
+        //{
+            
+        //}
+
+        private async Task<bool> IntersectionDates(TimeOffRequestApiModel obj)
+        {
+            if (obj.EndDate < obj.StartDate)
+                return true;
+
+            var userRequests = await _repository.FilterAsync(x => x.UserId == obj.UserId);
+
+            if (userRequests.Count > 0)
+                return (userRequests.Where((u => u.UserId == obj.UserId && (obj.StartDate >= u.StartDate && obj.StartDate <= u.EndDate) || (obj.EndDate <= u.EndDate && obj.StartDate >= u.StartDate))).Any());
+            else
+                return true;
         }
     }
 }

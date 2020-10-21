@@ -41,12 +41,6 @@ namespace TimeOffTracker.WebApi.Filters
                     break;
             }
 
-
-            //context.Result = new ContentResult()
-            //{
-            //    Content = exceptionMessage,
-            //    StatusCode = 400
-            //};
             context.ExceptionHandled = false;
             
         }

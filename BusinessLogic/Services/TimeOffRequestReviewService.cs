@@ -26,6 +26,12 @@ namespace BusinessLogic.Services
             await _repository.CreateAsync(_mapper.Map<TimeOffRequestReview>(obj));
         }
 
+        public async Task DeleteAsync(int id)
+        {
+            if (await _repository.FindAsync(x => x.Id == id) != null)
+                await _repository.DeleteAsync(id);
+        }
+
         public async Task<TimeOffRequestReviewApiModel> GetByIdAsync(int reviewId)
         {
             return _mapper.Map<TimeOffRequestReviewApiModel>(await _repository.FindAsync(x => x.Id == reviewId));
