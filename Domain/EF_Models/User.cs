@@ -16,6 +16,6 @@ namespace Domain.EF_Models
         }
 
         [NotMapped]
-            public string Role { get; set; }
+        public string Role { get; set; }
     }
 }

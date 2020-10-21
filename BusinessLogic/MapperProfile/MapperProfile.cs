@@ -15,6 +15,7 @@ namespace TimeOffTracker.WebApi.MapperProfile
             CreateMap<User, UserApiModel>();
             CreateMap<UserApiModel, User>()
                 .ForMember(user => user.UserName, opt => opt.Ignore());
+                
 
             CreateMap<RegisterViewModel, User>()
                 .ForMember(user => user.UserName, opt => opt.MapFrom(model => string.Concat(model.Email.TakeWhile(ch => ch != '@'))))
