@@ -4,9 +4,9 @@ using System.Text;
 
 namespace BusinessLogic.Exceptions
 {
-    public class ConflictException : Exception
+    public class StateException:Exception
     {
-        public ConflictException(string message) : base(message)
+        public StateException(string message) : base(message)
         { }
 
         public int StatusCode = 409;

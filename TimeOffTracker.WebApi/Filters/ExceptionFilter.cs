@@ -24,25 +24,26 @@ namespace TimeOffTracker.WebApi.Filters
             var contextResult = new ContentResult();
             contextResult.Content = context.Exception.Message;
           
-
-            switch (context.Exception.GetType().Name)
+            switch (context.Exception)
             {
-                case "ConflictException":
-                    contextResult.StatusCode = 409;
+                case ConflictException conflictException:
+                    contextResult.StatusCode = conflictException.StatusCode;
                     break;
-                case "NoReviewerException":
-                    contextResult.StatusCode = 400;
+                case StateException stateException:
+                    contextResult.StatusCode = stateException.StatusCode;
                     break;
-                case "RequiredArgumentNullException":
-                    contextResult.StatusCode = 400;
+                case NoReviewerException reviewerException:
+                    contextResult.StatusCode = reviewerException.StatusCode;
+                    break;
+                case RequiredArgumentNullException requiredArgumentNullException:
+                    contextResult.StatusCode = requiredArgumentNullException.StatusCode;
                     break;
                 default:
                     contextResult.StatusCode = 400;
                     break;
             }
 
-            context.ExceptionHandled = false;
-            
+            context.ExceptionHandled = false;            
         }
     }
 }

@@ -8,5 +8,7 @@ namespace BusinessLogic.Exceptions
     {
         public NoReviewerException(string message) : base(message)
         { }
+        
+        public int StatusCode = 400;
     }
 }

@@ -71,42 +71,44 @@ namespace BusinessLogic.Services
         {
             var requestFromDb = await _repository.FindAsync(requestId);
 
-            if (requestFromDb.State == VacationRequestState.New)
+            switch (requestFromDb.State)
             {
-                FillReviewers(newModel);
+                case VacationRequestState.New:
 
-                if (await CheckNewRequest(newModel))
-                    _mapper.Map(newModel, requestFromDb);
+                    FillReviewers(newModel);
+                    newModel.StateId = (int)VacationRequestState.New;
+                    if (await CheckNewRequest(newModel))
+                        _mapper.Map(newModel, requestFromDb);
+                    break;
+
+                case VacationRequestState.InProgress:
+                    //Reviewers
+
+                    break;
+
+                case VacationRequestState.Approved:
+
+                    if (await IntersectionDates(newModel))
+                        throw new ConflictException("Incorrect dates");
+                    if (String.IsNullOrEmpty(newModel.Comment))
+                        throw new RequiredArgumentNullException("Comment field is empty");
+
+                    //if Reviewers
+                    requestFromDb.EndDate = newModel.EndDate;
+                    requestFromDb.StartDate = newModel.StartDate;
+                    requestFromDb.Comment = newModel.Comment;
+                    requestFromDb.State = VacationRequestState.Rejected;
+                    //reviewers update
+                    await Duplicate(_mapper.Map<TimeOffRequestApiModel>(requestFromDb), requestFromDb.Id);
+
+                    break;
+
+                case VacationRequestState.Rejected:
+
+                        throw new StateException("State does not allow the request");
             }
-           else if(requestFromDb.State == VacationRequestState.InProgress)
-           {
-                //requestFromDb.Reviews = await UpdateReviewers(newModel);
 
-                ////foreach(var item in requestFromDb.Reviews)
-                ////    _timeOffRequestReviewService.Upd
-
-                //Reviewers
-            }
-            else if (requestFromDb.State == VacationRequestState.Approved)
-           {
-                if (await IntersectionDates(newModel))
-                    throw new ConflictException("Incorrect dates");
-
-
-                if (String.IsNullOrEmpty(newModel.Comment))
-                    throw new RequiredArgumentNullException("Comment field is empty");
-
-                //if Reviewers
-
-                requestFromDb.EndDate = newModel.EndDate;
-                requestFromDb.StartDate = newModel.StartDate;
-                requestFromDb.Comment = newModel.Comment;
-                requestFromDb.State = VacationRequestState.Rejected;
-                //reviewers update
-                await Duplicate(_mapper.Map<TimeOffRequestApiModel>(requestFromDb), requestFromDb.Id);
-           }
-
-            await _repository.UpdateAsync(requestFromDb);
+            await _repository.UpdateAsync(requestFromDb);           
         }
 
         public async Task Duplicate(TimeOffRequestApiModel duplicateModel, int parentId)
@@ -139,7 +141,6 @@ namespace BusinessLogic.Services
 
         private async Task<bool> ValidateAccountingReviewer(TimeOffRequestReview review)
         {              
-
             var accountantReview = _mapper.Map<User>(await _userService.GetUser(review.ReviewerId));
            
             return (accountantReview != null && accountantReview.Role==RoleName.accountant);
@@ -195,12 +196,9 @@ namespace BusinessLogic.Services
             if (obj.EndDate < obj.StartDate)
                 return true;
 
-            var userRequests = await _repository.FilterAsync(x => x.UserId == obj.UserId);
-
-            if (userRequests.Count > 0)
-                return (userRequests.Where((u => u.UserId == obj.UserId && (obj.StartDate >= u.StartDate && obj.StartDate <= u.EndDate) || (obj.EndDate <= u.EndDate && obj.StartDate >= u.StartDate))).Any());
-            else
-                return true;
+            return (await _repository.FilterAsync((u => u.UserId == obj.UserId 
+            && (obj.StartDate >= u.StartDate && obj.StartDate <= u.EndDate) 
+                || (obj.EndDate <= u.EndDate && obj.StartDate >= u.StartDate)))).Any();
         }
     }
 }
