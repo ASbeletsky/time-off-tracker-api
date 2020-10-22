@@ -2,11 +2,13 @@ using BusinessLogic.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Globalization;
 using System.Text;
 using TimeOffTracker.WebApi.AuthHelpers;
 using TimeOffTracker.WebApi.Filters;
@@ -35,7 +37,7 @@ namespace TimeOffTracker.WebApi
             services.AddControllers(mvcOtions =>
             {
                 mvcOtions.EnableEndpointRouting = false;
-            });
+            }).AddViewLocalization();
 
             services.AddScoped(typeof(UserTokenService));
 
@@ -77,6 +79,18 @@ namespace TimeOffTracker.WebApi
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            var supportedCultures = new[]
+            {
+                new CultureInfo("en"),
+                new CultureInfo("ru"),
+            };
+            app.UseRequestLocalization(new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture("ru"),
+                SupportedCultures = supportedCultures,
+                SupportedUICultures = supportedCultures
+            });
 
             app.UseHttpsRedirection();
 

@@ -3,16 +3,15 @@ using AutoMapper;
 using BusinessLogic.Notifications;
 using BusinessLogic.Services.Interfaces;
 using DataAccess.Repository.Interfaces;
-using DataAccess.Static.Context;
 using Domain.EF_Models;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Localization;
+using RazorLibrary;
+using RazorLibrary.Services.Interfaces;
+using RazorLibrary.Views.Emails;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Resources;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,100 +19,56 @@ namespace BusinessLogic.NotificationHandlers
 {
     class RequestUpdatedEmailHandelr : INotificationHandler<RequestUpdatedNotification>
     {
-        private const string resourceFile = @"BusinessLogic.Resources.Email";
-        ResourceManager _resourceManager;
-
         IRepository<TimeOffRequestReview, int> _reviewRepository;
         UserManager<User> _userManager;
+        IStringLocalizer<SharedEmailResources> _localizer;
+        IRazorViewToStringRenderer _razorViewToStringRenderer;
         IMapper _mapper;
         IEmailService _mailer;
 
-        public RequestUpdatedEmailHandelr(IRepository<TimeOffRequestReview, int> revRepository, UserManager<User> userManager, IMapper mapper, IEmailService mailer)
+        public RequestUpdatedEmailHandelr(
+            IRepository<TimeOffRequestReview, int>
+            revRepository, UserManager<User> userManager,
+            IStringLocalizer<SharedEmailResources> localizer,
+            IRazorViewToStringRenderer razorViewToStringRenderer,
+            IMapper mapper, 
+            IEmailService mailer)
         {
-            _resourceManager = new ResourceManager(resourceFile, Assembly.GetExecutingAssembly());
             _reviewRepository = revRepository;
+            _razorViewToStringRenderer = razorViewToStringRenderer;
+            _localizer = localizer;
             _userManager = userManager;
             _mapper = mapper;
             _mailer = mailer;
         }
 
         public async Task Handle(RequestUpdatedNotification notification, CancellationToken cancellationToken)
-        {          
+        {
             TimeOffRequest request = notification.Request;
             User author = await _userManager.FindByIdAsync(request.UserId.ToString());
 
             RequestDataForEmailModel model = _mapper.Map<RequestDataForEmailModel>(request);
             model.AuthorFullName = author.FirstName + " " + author.LastName;
-            
-            //correct work
-            string theme = string.Format(_resourceManager.GetString("UpdatedTheme"), model.RequestType, model.AuthorFullName, model.StartDate, model.EndDate); 
 
-            string address = string.Empty;
-            if (request.HasAccountingReviewPassed)
-            {
-                // obtain collection of reviews and reviewers (if repository function was override) 
-                // Another way: we can manually get reviewers for reviews collection using UserManager/UserRepository (in foreach loop)
-                IEnumerable<TimeOffRequestReview> reviews = await _reviewRepository.FilterAsync(rev => rev.RequestId == request.Id);
-                List<string> approvedPeopleNames = new List<string>(); 
-                foreach (TimeOffRequestReview review in reviews)
-                {
-                    StringBuilder sb = new StringBuilder(50).Append(_resourceManager.GetString("Accountant"));
-                    if (review.IsApproved) //collect names for approved list
-                    {
-                        sb.Append(", ").Append(review.Reviewer.FirstName + " " + review.Reviewer.LastName);
-                    }
-                    else // next manager in reviews
-                    {
-                        address = review.Reviewer.Email;
-                        break;
-                    }
-                    model.ApprovedFullNames = sb.ToString();
-                }
-            }
-            else //Accountant not approved
-            {
-                var users = await _userManager.GetUsersInRoleAsync(RoleName.accountant);
-                address = users.FirstOrDefault().Email;
-            }
+            IEnumerable<TimeOffRequestReview> reviews = await _reviewRepository.FilterAsync(rev => rev.RequestId == request.Id);
 
-            string head = await GetMailHead();
-            string body = await GetMailBody();
+            var approvedPeopleNames = reviews.Where(r => r.IsApproved).Select(r => r.Reviewer.FirstName + " " + r.Reviewer.LastName).ToList();
+            model.ApprovedFullNames = string.Join(", ", approvedPeopleNames);
 
-            body = string.Format(body,
-                model.AuthorFullName,       //{0} : Author
-                model.RequestType,          //{1} : RequestType  
-                model.StartDate,            //{2} : StartDate  
-                model.EndDate,              //{3} : EndDate 
-                model.Duration,             //{4} : Duration 
-                model.Comment,              //{5} : Comment
-                model.ApprovedFullNames     //{6} : ApprovedBy 
-                );                          //{...}: references for button
+            string address = reviews.Where(r => r.IsApproved).Select(r => r.Reviewer.Email).FirstOrDefault();
+            string theme = string.Format(
+                _localizer.GetString("UpdatedTheme"),
+                    _localizer.GetString(model.RequestType),
+                    model.AuthorFullName,
+                    model.StartDate,
+                    model.EndDate
+                    );
 
-            await _mailer.SendEmailAsync(address, theme, head + body);
-        }
+            var dataForViewModel = new RequestEmailViewModel(model, "https://www.google.com", "https://www.bing.com"); //test references
 
-        private async Task<string> GetMailHead()
-        {
-            string bodyHeadPath = _resourceManager.GetString("UpdatedMailHead");
-            string head = string.Empty;
-            using (StreamReader SourceReader = File.OpenText(bodyHeadPath))
-            {
-                head = await SourceReader.ReadToEndAsync();
-            }
+            string body = await _razorViewToStringRenderer.RenderViewToStringAsync("/Views/Emails/RequestUpdate/RequestUpdate.cshtml", dataForViewModel);
 
-            return head;
-        }
-
-        private async Task<string> GetMailBody()
-        {
-            string bodyPath = _resourceManager.GetString("UpdatedMailBody");
-            string body = string.Empty;
-            using (StreamReader SourceReader = File.OpenText(bodyPath))
-            {
-                body = await SourceReader.ReadToEndAsync();
-            }
-
-            return body;
+            await _mailer.SendEmailAsync(address, theme, body);
         }
     }
 }
