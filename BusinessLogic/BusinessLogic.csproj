@@ -17,21 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ApiModels\ApiModels.csproj" />
     <ProjectReference Include="..\DataAccess\DataAccess.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Resources\Email.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Email.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Resources\Email.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Email.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <ProjectReference Include="..\RazorLibrary\RazorLibrary.csproj" />
   </ItemGroup>
 
 </Project>
