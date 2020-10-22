@@ -3,7 +3,8 @@ using MediatR;
 
 namespace BusinessLogic.Notifications
 {
-    class RequestUpdatedNotification : RequestChangedNotification
+    class RequestUpdatedNotification : INotification
     {
+        public TimeOffRequest Request { get; set; }
     }
 }
