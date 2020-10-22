@@ -117,8 +117,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Accountant" xml:space="preserve">
-    <value>Бухгалтерия</value>
+  <data name="AdministrativeUnpaidLeave" xml:space="preserve">
+    <value>Плановый неоплачиваемый отпуск</value>
+  </data>
+  <data name="Approve" xml:space="preserve">
+    <value>Утвердить</value>
+  </data>
+  <data name="Approved" xml:space="preserve">
+    <value>Утверждено</value>
   </data>
   <data name="ApprovedAuthorTheme" xml:space="preserve">
     <value>[Отпуск] Заявка утверждена: {0} - {1}-{2}</value>
@@ -128,6 +134,30 @@
     <value>[Отпуск] Утверждена: {0} - {1} - {2}-{3}</value>
     <comment>Тема письма про утвержденную заявку</comment>
   </data>
+  <data name="Comment" xml:space="preserve">
+    <value>Комментарий</value>
+  </data>
+  <data name="Dates" xml:space="preserve">
+    <value>Даты</value>
+  </data>
+  <data name="Duration" xml:space="preserve">
+    <value>Использовать</value>
+  </data>
+  <data name="ForceMajeureAdministrativeLeave" xml:space="preserve">
+    <value>Отпуск по причине форс-мажора</value>
+  </data>
+  <data name="FullDay" xml:space="preserve">
+    <value>Полный день</value>
+  </data>
+  <data name="HalfDay" xml:space="preserve">
+    <value>Пол дня</value>
+  </data>
+  <data name="PaidLeave" xml:space="preserve">
+    <value>Оплачиваемый отпуск</value>
+  </data>
+  <data name="Reject" xml:space="preserve">
+    <value>Отклонить</value>
+  </data>
   <data name="RejectedAuthorTheme" xml:space="preserve">
     <value>[Отпуск] Заявка отклонена: {0} - {1}-{2}</value>
     <comment>Тема письма про отклоненную заявку для автора</comment>
@@ -136,16 +166,26 @@
     <value>[Отпуск] Отклонена: {0} - {1} - {2}-{3}</value>
     <comment>Тема письма про отклоненную заявку</comment>
   </data>
-  <data name="UpdatedMailBody" xml:space="preserve">
-    <value>EmailTemplates/EmailAboutRequestUpdateBody_ru</value>
-    <comment>Путь к шаблону письма про необходимость рассмотреть заявку</comment>
+  <data name="SickLeaveWithDocuments" xml:space="preserve">
+    <value>Больничный с больничным листом</value>
   </data>
-  <data name="UpdatedMailHead" xml:space="preserve">
-    <value>EmailTemplates/EmailAboutRequestUpdateHead.html</value>
-    <comment>Путь к шаблону письма про необходимость рассмотреть заявку</comment>
+  <data name="SickLeaveWithoutDocuments" xml:space="preserve">
+    <value>Больничный без больничного листа</value>
+  </data>
+  <data name="SocialLeave" xml:space="preserve">
+    <value>Социальный отпуск</value>
+  </data>
+  <data name="StudyLeave" xml:space="preserve">
+    <value>Учебный отпуск</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Тип</value>
   </data>
   <data name="UpdatedTheme" xml:space="preserve">
     <value>[Отпуск] Новая: {0} - {1} - {2}-{3}</value>
     <comment>Тема письма про необходимость рассмотреть заявку</comment>
+  </data>
+  <data name="Who" xml:space="preserve">
+    <value>Кто</value>
   </data>
 </root>
