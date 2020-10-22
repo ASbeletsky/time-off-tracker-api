@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Domain.EF_Models;
+using MediatR;
 
 namespace BusinessLogic.Notifications
 {
-    class RequestApprovedNotification : RequestChangedNotification
+    class RequestApprovedNotification : INotification
     {
+        public TimeOffRequest Request { get; set; }
     }
 }
