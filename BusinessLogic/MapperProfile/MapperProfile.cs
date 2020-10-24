@@ -23,6 +23,12 @@ namespace TimeOffTracker.WebApi.MapperProfile
                 .ForMember(model => model.EndDate, opt => opt.MapFrom(req => req.EndDate.ToString("MM/dd/yyyy")))
                 .ForMember(model => model.Duration, opt => opt.MapFrom(req => req.Duration.ToString()));
 
+            CreateMap<TimeOffRequest, RequestDataForEmailModel>()
+                .ForMember(model => model.RequestType, opt => opt.MapFrom(req => req.Type.ToString()))
+                .ForMember(model => model.StartDate, opt => opt.MapFrom(req => req.StartDate.ToString("MM/dd/yyyy")))
+                .ForMember(model => model.EndDate, opt => opt.MapFrom(req => req.EndDate.ToString("MM/dd/yyyy")))
+                .ForMember(model => model.Duration, opt => opt.MapFrom(req => req.Duration.ToString()));
+
             CreateMap<RegisterViewModel, User>()
                 .ForMember(user => user.UserName, opt => opt.MapFrom(model => string.Concat(model.Email.TakeWhile(ch => ch != '@'))))
                 .ForMember(user => user.Id, opt => opt.Ignore());
