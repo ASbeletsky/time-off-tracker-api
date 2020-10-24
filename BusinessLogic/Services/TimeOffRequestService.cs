@@ -1,19 +1,17 @@
 ﻿using ApiModels.Models;
 using AutoMapper;
 using BusinessLogic.Exceptions;
+using BusinessLogic.Notifications;
 using BusinessLogic.Services.Interfaces;
-using DataAccess.Repository;
 using DataAccess.Repository.Interfaces;
 using DataAccess.Static.Context;
 using Domain.EF_Models;
 using Domain.Enums;
-using Microsoft.AspNetCore.Http.Internal;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BusinessLogic.Services
@@ -24,13 +22,15 @@ namespace BusinessLogic.Services
         IMapper _mapper;
         ITimeOffRequestReviewService _timeOffRequestReviewService;
         IUserService _userService;
+        IMediator _mediator;
 
-        public TimeOffRequestService(IRepository<TimeOffRequest, int> repository, IMapper mapper, ITimeOffRequestReviewService timeOffRequestReviewService, IUserService userService)
+        public TimeOffRequestService(IRepository<TimeOffRequest, int> repository, IMapper mapper, ITimeOffRequestReviewService timeOffRequestReviewService, IUserService userService, IMediator mediator)
         {
             _repository = repository;
             _mapper = mapper;
             _timeOffRequestReviewService = timeOffRequestReviewService;
             _userService = userService;
+            _mediator = mediator;
         }
 
         public async Task AddAsync(TimeOffRequestApiModel obj)
@@ -41,7 +41,11 @@ namespace BusinessLogic.Services
             {
                 obj.StateId = (int)VacationRequestState.New;
                 obj.HasAccountingReviewPassed = false;
-                await _repository.CreateAsync(_mapper.Map<TimeOffRequest>(obj));
+                TimeOffRequest request = _mapper.Map<TimeOffRequest>(obj);
+                await _repository.CreateAsync(request);
+
+                var notification = new RequestUpdatedNotification { Request = request };
+                await _mediator.Publish(notification);
             }
         }
 
@@ -120,6 +124,9 @@ namespace BusinessLogic.Services
             //duplicateModel.ReviewsIds = null;
             //duplicateModel.Reviews = null;
             await _repository.CreateAsync(_mapper.Map(duplicateModel, newModel));
+
+            var notification = new RequestUpdatedNotification { Request = newModel };
+            await _mediator.Publish(notification);
         }
 
         public async Task DeleteAsync(int requestId)

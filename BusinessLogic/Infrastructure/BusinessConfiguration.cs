@@ -1,16 +1,17 @@
-﻿using ApiModels.Models;
-using AutoMapper;
+﻿using AutoMapper;
 using BusinessLogic.Services;
 using BusinessLogic.Services.Interfaces;
+using BusinessLogic.Settings;
 using DataAccess.Context;
 using DataAccess.Infrastructure;
-using DataAccess.Repository;
-using DataAccess.Repository.Interfaces;
 using Domain.EF_Models;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using RazorLibrary.Infrastructure;
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using TimeOffTracker.WebApi.MapperProfile;
 
@@ -20,9 +21,10 @@ namespace BusinessLogic.Infrastructure
     {
         public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-
             DataAccessConfiguration.ConfigureServices(services, configuration);
-            //services.AddScoped<IRepository<User, int>, UserRepository>();
+            RazorConfiguration.ConfigureServices(services, configuration);
+
+            services.AddMediatR(Assembly.GetExecutingAssembly());
 
             services.AddScoped<IUserService, UserService>();
 
@@ -31,10 +33,12 @@ namespace BusinessLogic.Infrastructure
                 cfg.AddProfile(new MapperProfile());
             }).CreateMapper());
 
-
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITimeOffRequestService, TimeOffRequestService>();
             services.AddScoped<ITimeOffRequestReviewService, TimeOffRequestReviewService>();
+
+            services.Configure<SmtpSettings>(opt => configuration.GetSection("SmtpSettings").Bind(opt));
+            services.AddSingleton<IEmailService, EmailService>();
         }
         public static async Task ConfigureIdentityInicializerAsync(IServiceProvider provider)
         {
