@@ -1,6 +1,7 @@
 ﻿using DataAccess.Static.Context;
 using Domain.EF_Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -20,27 +21,30 @@ namespace DataAccess.Context
         }
         public async Task SeedAsync()
         {
+            await CreateDefaultAccount("accounting@mail.ru", "accounting89M#", RoleName.accountant);
+            await CreateDefaultAccount("mainadmin@mail.ru", "mainadmin89M#", RoleName.admin);
+           
             await _roleManager.CreateAsync(new IdentityRole<int>(RoleName.manager));
-            await _roleManager.CreateAsync(new IdentityRole<int>(RoleName.accountant));
             await _roleManager.CreateAsync(new IdentityRole<int>(RoleName.employee));
+        }
 
-            var login = "mainadmin@mail.ru";
-            var pass = "mainadmin89M#";
+        private async Task CreateDefaultAccount(string login, string password, string role) 
+        {
 
             if ((await _userManager.FindByEmailAsync(login)) == null)
             {
                 var user = new User() { UserName = login, Email = login };
-                var saveuser = await _userManager.CreateAsync(user, pass);
+                var saveuser = await _userManager.CreateAsync(user, password);
 
                 if (saveuser.Succeeded)
                 {
-                    if ((await _roleManager.FindByNameAsync(RoleName.admin)) == null)
+                    if ((await _roleManager.FindByNameAsync(role)) == null)
                     {
-                        var saverole = await _roleManager.CreateAsync(new IdentityRole<int>(RoleName.admin));
+                        var saverole = await _roleManager.CreateAsync(new IdentityRole<int>(role));
 
                         if (saverole.Succeeded)
                         {
-                            await _userManager.AddToRoleAsync(user, RoleName.admin);
+                            await _userManager.AddToRoleAsync(user, role);
                         }
                     }
                 }

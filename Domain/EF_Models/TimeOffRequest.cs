@@ -24,5 +24,6 @@ namespace Domain.EF_Models
         public TimeOffDuration Duration { get; set; }
         public User User { get; set; }
         public int UserId { get; set; }
+        public int ParentRequestId { get; set; }
     }
 }

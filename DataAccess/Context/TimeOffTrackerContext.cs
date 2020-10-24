@@ -19,13 +19,21 @@ namespace DataAccess.Context
         {
             modelBuilder.Entity<TimeOffRequestReview>()
                 .HasOne(r => r.Reviewer)
-                .WithOne()
+                .WithMany()
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<TimeOffRequestReview>()
                 .HasOne(review => review.Request)
                 .WithMany(request => request.Reviews)
+                .HasForeignKey(review => review.RequestId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<TimeOffRequest>()
+                .HasOne(req => req.User)
+                .WithMany(usr => usr.Requests)
+                .HasForeignKey(req => req.UserId);
+
+            
 
             base.OnModelCreating(modelBuilder);
         }
