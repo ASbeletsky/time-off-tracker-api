@@ -9,8 +9,9 @@ namespace ApiModels.Models
         public int Id { get; set; }
         public UserApiModel Reviewer { get; set; }
         public int ReviewerId { get; set; }
-        public bool IsApproved { get; set; }
+        public bool? IsApproved { get; set; }
         public TimeOffRequestApiModel Request { get; set; }
         public int RequestId { get; set; }
+        public string Comment { get; set; }
     }
 }
