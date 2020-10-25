@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using TimeOffTracker.WebApi.ViewModels;
 using TimeOffTracker.WebApi.Services;
 using Microsoft.Extensions.Logging;
+using MediatR;
+using BusinessLogic.Notifications;
+using System.Threading.Tasks;
 
 namespace TimeOffTracker.WebApi.Controllers
 {
@@ -29,7 +32,7 @@ namespace TimeOffTracker.WebApi.Controllers
                 return BadRequest(new { message = "Username or password is incorrect" });
 
             _logger.LogInformation("Login succes. User: {User}", model.Username);
-
+            
             return Ok(userWithJWT);
         }
     }

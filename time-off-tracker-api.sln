@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiModels", "ApiModels\ApiM
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimeOffTracker.WebApi", "TimeOffTracker.WebApi\TimeOffTracker.WebApi.csproj", "{A5327B7F-B361-42D7-AC8C-36E61EF2EDBE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmailTemplateRender", "EmailTemplateRender\EmailTemplateRender.csproj", "{5D4A3D52-D33A-4FFD-A4C7-27AC410CD6F1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{A5327B7F-B361-42D7-AC8C-36E61EF2EDBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5327B7F-B361-42D7-AC8C-36E61EF2EDBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A5327B7F-B361-42D7-AC8C-36E61EF2EDBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D4A3D52-D33A-4FFD-A4C7-27AC410CD6F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D4A3D52-D33A-4FFD-A4C7-27AC410CD6F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D4A3D52-D33A-4FFD-A4C7-27AC410CD6F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D4A3D52-D33A-4FFD-A4C7-27AC410CD6F1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
