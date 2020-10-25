@@ -176,8 +176,7 @@ namespace BusinessLogic.Services
            foreach(var item in obj.ReviewsIds)
            {
                 var rewiew = new TimeOffRequestReviewApiModel()
-                {
-                    IsApproved = false,
+                {                    
                     ReviewerId = item,
                     RequestId = obj.Id
                 };

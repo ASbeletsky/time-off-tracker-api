@@ -29,13 +29,14 @@ namespace TimeOffTracker.WebApi
         {
             BusinessConfiguration.ConfigureServices(services, Configuration);
             BusinessConfiguration.ConfigureIdentityInicializerAsync(services.BuildServiceProvider());
-
+           
             JwtConfiguration.Configure(services, Configuration);
 
             services.AddControllers(mvcOtions =>
             {
                 mvcOtions.EnableEndpointRouting = false;
-            });
+            }).AddNewtonsoftJson(options =>
+            options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
             services.AddScoped(typeof(UserTokenService));
 

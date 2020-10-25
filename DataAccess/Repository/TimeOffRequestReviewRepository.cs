@@ -13,6 +13,27 @@ namespace DataAccess.Repository
 {
     public class TimeOffRequestReviewRepository : BaseRepository<TimeOffRequestReview, int>
     {
-        public TimeOffRequestReviewRepository(TimeOffTrackerContext context) : base(context) { }       
+        public TimeOffRequestReviewRepository(TimeOffTrackerContext context) : base(context) { }
+
+        public override async Task<IReadOnlyCollection<TimeOffRequestReview>> FilterAsync(Expression<Func<TimeOffRequestReview, bool>> predicate)
+        {
+            return await Entities.Where(predicate)
+                 .Include(r => r.Request)
+                    .ThenInclude(rev => rev.Reviews)
+                 .Include(r => r.Reviewer)
+                 .Include(req => req.Request)
+                    .ThenInclude(u => u.User)
+                 .ToListAsync();
+        }
+
+        public override async Task<TimeOffRequestReview> FindAsync(Expression<Func<TimeOffRequestReview, bool>> predicate)
+        {
+            return await Entities.Where(predicate)
+                 .Include(r => r.Request)
+                 .ThenInclude(g => g.Reviews)
+                 .Include(u => u.Reviewer).FirstOrDefaultAsync();
+        }
+        
+        
     }
 }
