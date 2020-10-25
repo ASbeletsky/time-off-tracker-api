@@ -1,4 +1,4 @@
-﻿namespace RazorLibrary
+﻿namespace EmailTemplateRender
 {
     public class SharedEmailResources
     {

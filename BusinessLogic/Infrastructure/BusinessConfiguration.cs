@@ -9,7 +9,7 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using RazorLibrary.Infrastructure;
+using EmailTemplateRender.Infrastructure;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;

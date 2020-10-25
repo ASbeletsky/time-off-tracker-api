@@ -1,6 +1,6 @@
 ﻿using ApiModels.Models;
 
-namespace RazorLibrary.Views.Emails
+namespace EmailTemplateRender.Views.Emails
 {
     public class RequestEmailViewModel
     {

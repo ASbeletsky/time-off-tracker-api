@@ -7,12 +7,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Routing;
-using RazorLibrary.Services.Interfaces;
+using EmailTemplateRender.Services.Interfaces;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace RazorLibrary.Services
+namespace EmailTemplateRender.Services
 {
     public class RazorViewToStringRenderer : IRazorViewToStringRenderer
     {

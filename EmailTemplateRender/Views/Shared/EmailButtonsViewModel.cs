@@ -1,4 +1,4 @@
-﻿namespace RazorLibrary.Views.Shared
+﻿namespace EmailTemplateRender.Views.Shared
 {
     public class EmailButtonsViewModel
     {

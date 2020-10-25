@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.ViewEngines;
 using System.Threading.Tasks;
 
-namespace RazorLibrary.Services.Interfaces
+namespace EmailTemplateRender.Services.Interfaces
 {
     public interface IRazorViewToStringRenderer
     {

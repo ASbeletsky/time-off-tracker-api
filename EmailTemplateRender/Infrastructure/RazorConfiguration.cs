@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using RazorLibrary.Services;
-using RazorLibrary.Services.Interfaces;
+using EmailTemplateRender.Services;
+using EmailTemplateRender.Services.Interfaces;
 
-namespace RazorLibrary.Infrastructure
+namespace EmailTemplateRender.Infrastructure
 {
     public static class RazorConfiguration
     {
