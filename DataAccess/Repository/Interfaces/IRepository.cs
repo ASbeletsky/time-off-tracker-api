@@ -16,5 +16,8 @@ namespace DataAccess.Repository.Interfaces
         Task<TEntity> FindAsync(TKey id);
         Task DeleteAsync(TKey id);
         Task UpdateAsync(TEntity entity);
+
+        Task<IReadOnlyCollection<TEntity>> GetWithIncludeAsync(params Expression<Func<TEntity, object>>[] includeProperties);
+        Task<IReadOnlyCollection<TEntity>> FilterWithIncludeAsync(Expression<Func<TEntity, bool>> predicate, params Expression<Func<TEntity, object>>[] includeProperties);
     }
 }

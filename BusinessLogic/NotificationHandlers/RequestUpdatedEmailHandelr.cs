@@ -45,17 +45,17 @@ namespace BusinessLogic.NotificationHandlers
         public async Task Handle(RequestUpdatedNotification notification, CancellationToken cancellationToken)
         {
             TimeOffRequest request = notification.Request;
-            User author = await _userManager.FindByIdAsync(request.UserId.ToString());
-
             RequestDataForEmailModel model = _mapper.Map<RequestDataForEmailModel>(request);
-            model.AuthorFullName = author.FirstName + " " + author.LastName;
 
-            IEnumerable<TimeOffRequestReview> reviews = await _reviewRepository.FilterAsync(rev => rev.RequestId == request.Id);
+            User author = await _userManager.FindByIdAsync(request.UserId.ToString());
+            model.AuthorFullName = $"{author.FirstName} {author.LastName}".Trim();
 
-            var approvedPeopleNames = reviews.Where(r => r.IsApproved).Select(r => r.Reviewer.FirstName + " " + r.Reviewer.LastName).ToList();
+            IEnumerable<TimeOffRequestReview> reviews = await _reviewRepository.FilterWithIncludeAsync(rev => rev.RequestId == request.Id, rev => rev.Reviewer);
+
+            var approvedPeopleNames = reviews.Where(r => r.IsApproved).Select(r => $"{r.Reviewer.FirstName} {r.Reviewer.LastName}".Trim()).ToList();
             model.ApprovedFullNames = string.Join(", ", approvedPeopleNames);
 
-            string address = reviews.Where(r => r.IsApproved).Select(r => r.Reviewer.Email).FirstOrDefault();
+            string address = reviews.Where(r => !r.IsApproved).Select(r => r.Reviewer.Email).FirstOrDefault();
             string theme = string.Format(
                 _localizer.GetString("UpdatedTheme"),
                     _localizer.GetString(model.RequestType),
