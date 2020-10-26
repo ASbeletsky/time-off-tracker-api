@@ -134,6 +134,9 @@
     <value>[Leave] Approved: {0} - {1} - {2}-{3}</value>
     <comment>Тема письма про утвержденную заявку</comment>
   </data>
+  <data name="AuthorRequestApproved" xml:space="preserve">
+    <value>Your request has been approved!</value>
+  </data>
   <data name="Comment" xml:space="preserve">
     <value>Comment</value>
   </data>
@@ -165,6 +168,9 @@
   <data name="RejectedTheme" xml:space="preserve">
     <value>[Leave] Rejected: {0} - {1} - {2}-{3}</value>
     <comment>Тема письма про отклоненную заявку</comment>
+  </data>
+  <data name="RequestApproved" xml:space="preserve">
+    <value>The request has been approved!</value>
   </data>
   <data name="SickLeaveWithDocuments" xml:space="preserve">
     <value>Sick leave with documents</value>
