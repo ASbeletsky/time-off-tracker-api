@@ -141,6 +141,9 @@ namespace BusinessLogic.Services
             {
                 requestFromDb.State = VacationRequestState.Rejected;
                 await _repository.UpdateAsync(requestFromDb);
+
+                var notification = new RequestRejectedNotification { Request = requestFromDb };
+                await _mediator.Publish(notification);
             }
         }
 

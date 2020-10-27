@@ -134,6 +134,15 @@
     <value>[Отпуск] Утверждена: {0} - {1} - {2}-{3}</value>
     <comment>Тема письма про утвержденную заявку</comment>
   </data>
+  <data name="AuthorRequestRejected" xml:space="preserve">
+    <value>Ваша заявка отклонена!</value>
+  </data>
+  <data name="ByWhom" xml:space="preserve">
+    <value>Кем</value>
+  </data>
+  <data name="Cause" xml:space="preserve">
+    <value>Причина</value>
+  </data>
   <data name="Comment" xml:space="preserve">
     <value>Комментарий</value>
   </data>
@@ -166,6 +175,9 @@
     <value>[Отпуск] Отклонена: {0} - {1} - {2}-{3}</value>
     <comment>Тема письма про отклоненную заявку</comment>
   </data>
+  <data name="RequestRejected" xml:space="preserve">
+    <value>Заявка отклонена.</value>
+  </data>
   <data name="SickLeaveWithDocuments" xml:space="preserve">
     <value>Больничный с больничным листом</value>
   </data>
@@ -187,5 +199,8 @@
   </data>
   <data name="Who" xml:space="preserve">
     <value>Кто</value>
+  </data>
+  <data name="YouCanCreateANewRequest" xml:space="preserve">
+    <value>Вы можете учесть замечания и оставить новую заявку.</value>
   </data>
 </root>
