@@ -23,7 +23,6 @@ namespace ApiModels.Models
         public ICollection<TimeOffRequestReviewApiModel> Reviews { get; set; }
         [Required]
         public ICollection<int> ReviewsIds { get; set; }
-        public bool HasAccountingReviewPassed { get; set; }
         public string Comment { get; set; }
         [Required]
         public int StateId { get; set; }

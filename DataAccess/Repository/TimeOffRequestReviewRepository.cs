@@ -18,11 +18,7 @@ namespace DataAccess.Repository
         public override async Task<IReadOnlyCollection<TimeOffRequestReview>> FilterAsync(Expression<Func<TimeOffRequestReview, bool>> predicate)
         {
             return await Entities.Where(predicate)
-                 .Include(r => r.Request)
-                    .ThenInclude(rev => rev.Reviews)
-                 .Include(r => r.Reviewer)
-                 .Include(req => req.Request)
-                    .ThenInclude(u => u.User)
+                 .Include(r => r.Request)                   
                  .ToListAsync();
         }
 
@@ -30,8 +26,7 @@ namespace DataAccess.Repository
         {
             return await Entities.Where(predicate)
                  .Include(r => r.Request)
-                 .ThenInclude(g => g.Reviews)
-                 .Include(u => u.Reviewer).FirstOrDefaultAsync();
+                 .FirstOrDefaultAsync();
         }
         
         

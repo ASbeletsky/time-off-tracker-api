@@ -36,22 +36,15 @@ namespace TimeOffTracker.WebApi.Controllers
             return await _service.GetAllAsync(reviewerId, stateId, startDate, endDate, name, typeId); ;
         }
 
-        [Authorize(Roles = "Manager, Accountant, Employee")]
-        [HttpPut("/reviews/{id}")]
+        [Authorize(Roles = "Manager, Accountant")]
+        [HttpPut("/reviews/user/{id}")]
         public async Task Put(int id, [FromBody] TimeOffRequestReviewApiModel model)
         {
-            var userId = int.Parse(this.User.Identity.Name);
+            var reviewerId = int.Parse(this.User.Identity.Name);
 
-            await _service.UpdateAsync(id, model, userId);
+            await _service.UpdateAsync(id, model, reviewerId);
         }
 
-        [HttpPut("/reviews")]
-        public async Task Put([FromBody] TimeOffRequestReviewApiModel model)
-        {
-            var userId = int.Parse(this.User.Identity.Name);
-
-            await _service.UpdateAsync(model, userId);
-        }
 
         [HttpDelete("/reviews/{id}")]
         public async Task Delete(int id)

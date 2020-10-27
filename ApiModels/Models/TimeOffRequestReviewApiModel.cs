@@ -13,5 +13,6 @@ namespace ApiModels.Models
         public TimeOffRequestApiModel Request { get; set; }
         public int RequestId { get; set; }
         public string Comment { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }
