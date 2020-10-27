@@ -13,6 +13,6 @@ namespace Domain.EF_Models
         public TimeOffRequest Request { get; set; }
         public int RequestId { get; set; }
         public string Comment { get; set; }
-
+        public DateTime UpdatedAt { get; set; }
     }
 }

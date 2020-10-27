@@ -8,11 +8,10 @@ namespace BusinessLogic.Services.Interfaces
 {
     public interface ITimeOffRequestReviewService
     {
-        Task<IReadOnlyCollection<TimeOffRequestReviewApiModel>> GetAllAsync(int userId, int? stateId = null, DateTime? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null);
+        Task<IReadOnlyCollection<TimeOffRequestReviewApiModel>> GetAllAsync(int reviewerId, int? stateId = null, DateTime? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null);
         Task<TimeOffRequestReviewApiModel> GetByIdAsync(int reviewId);
         Task CreateAsync(TimeOffRequestReviewApiModel obj);
         Task DeleteAsync(int id);
         Task UpdateAsync(int reviewId, TimeOffRequestReviewApiModel newModel, int userId);
-        Task UpdateAsync(TimeOffRequestReviewApiModel newModel, int userId);
     }
 }

@@ -17,7 +17,6 @@ namespace Domain.EF_Models
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public ICollection<TimeOffRequestReview> Reviews { get; set; }
-        public bool HasAccountingReviewPassed { get; set; }
         public string Comment { get; set; }
         public string ProjectRole { get; set; }
         public VacationRequestState State { get; set; }
