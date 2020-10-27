@@ -1,11 +1,13 @@
 ﻿using ApiModels.Models;
 using AutoMapper;
 using BusinessLogic.Exceptions;
+using BusinessLogic.Notifications;
 using BusinessLogic.Services.Interfaces;
 using DataAccess.Repository.Interfaces;
 using DataAccess.Static.Context;
 using Domain.EF_Models;
 using Domain.Enums;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,14 +23,16 @@ namespace BusinessLogic.Services
         IRepository<TimeOffRequestReview, int> _reviewRepository;
         IRepository<TimeOffRequest, int> _requestRepository;
         IRepository<User, int> _userRepository;
-        IMapper _mapper;      
+        IMapper _mapper;
+        IMediator _mediator;
 
-        public TimeOffRequestReviewService(IRepository<TimeOffRequestReview, int> reviewRepository, IMapper mapper, IRepository<TimeOffRequest, int> requestRepository, IRepository<User, int> userRepository)
+        public TimeOffRequestReviewService(IRepository<TimeOffRequestReview, int> reviewRepository, IMapper mapper, IRepository<TimeOffRequest, int> requestRepository, IRepository<User, int> userRepository, IMediator mediator)
         {
             _requestRepository = requestRepository;
             _reviewRepository = reviewRepository;
             _mapper = mapper;           
             _userRepository = userRepository;
+            _mediator = mediator;
         }
 
         public async Task CreateAsync(TimeOffRequestReviewApiModel obj)
@@ -73,21 +77,23 @@ namespace BusinessLogic.Services
                 throw new ConflictException("The request has already been rejected!");
          
             var reviewer = await _userRepository.FindAsync(userId);
-         
-            if(!(await _requestRepository.FilterAsync(r => r.Id == reviewfromDb.RequestId && (r.Reviews.Select(x=>x.Id).Contains(userId)))).Any())
+
+            if((await _requestRepository.FilterWithIncludeAsync(r => r.Id == reviewfromDb.RequestId 
+            && r.Reviews.Select(x => x.ReviewerId).Contains(userId), 
+            r => r.Reviews)).Any() == false)
                 throw new ConflictException("The request is not actual!");
 
-                if (isReapproval(reviewfromDb, userId))
+            if (isReapproval(reviewfromDb, userId))
                     throw new ConflictException("The request has already been approved!");
 
                 reviewfromDb.IsApproved = newModel.IsApproved;
                 reviewfromDb.Comment = newModel.Comment;
                 reviewfromDb.UpdatedAt = DateTime.Now.Date;
 
-                if (reviewfromDb.Request.Reviews.All(x => x.IsApproved != null))
-                    reviewfromDb.Request.State = VacationRequestState.Approved;
-            
             await _reviewRepository.UpdateAsync(reviewfromDb);
+
+            var notification = new ReviewUpdateHandler { Request = reviewfromDb.Request };
+            await _mediator.Publish(notification);
         }
 
         private bool isReapproval(TimeOffRequestReview review, int reviewerId)

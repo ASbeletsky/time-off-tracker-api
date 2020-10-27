@@ -55,7 +55,7 @@ namespace BusinessLogic.NotificationHandlers
             var approvedPeopleNames = reviews.Where(r => r.IsApproved == true).Select(r => $"{r.Reviewer.FirstName} {r.Reviewer.LastName}".Trim()).ToList();
             model.ApprovedFullNames = string.Join(", ", approvedPeopleNames);
 
-            string address = reviews.Where(r => r.IsApproved == false).Select(r => r.Reviewer.Email).FirstOrDefault();
+            string address = reviews.Where(r => r.IsApproved == null).Select(r => r.Reviewer.Email).FirstOrDefault();
             string theme = string.Format(
                 _localizer.GetString("UpdatedTheme"),
                     _localizer.GetString(model.RequestType),
