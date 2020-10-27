@@ -40,7 +40,7 @@ namespace BusinessLogic.Services
             if (await CheckNewRequest(obj))
             {
                 obj.StateId = (int)VacationRequestState.New;
-                obj.HasAccountingReviewPassed = false;
+                //obj.HasAccountingReviewPassed = false;
                 TimeOffRequest request = _mapper.Map<TimeOffRequest>(obj);
                 await _repository.CreateAsync(request);
 
@@ -120,7 +120,7 @@ namespace BusinessLogic.Services
             var newModel = new TimeOffRequest();
             duplicateModel.ParentRequestId = parentId;
             duplicateModel.StateId = (int)VacationRequestState.New;
-            duplicateModel.HasAccountingReviewPassed = false;
+            //duplicateModel.HasAccountingReviewPassed = false;
             //duplicateModel.ReviewsIds = null;
             //duplicateModel.Reviews = null;
             await _repository.CreateAsync(_mapper.Map(duplicateModel, newModel));

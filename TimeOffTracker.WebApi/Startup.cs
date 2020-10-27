@@ -37,7 +37,9 @@ namespace TimeOffTracker.WebApi
             services.AddControllers(mvcOtions =>
             {
                 mvcOtions.EnableEndpointRouting = false;
-            }).AddViewLocalization();
+            }).AddViewLocalization()
+              .AddNewtonsoftJson(options =>
+               options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
             services.AddScoped(typeof(UserTokenService));
 
