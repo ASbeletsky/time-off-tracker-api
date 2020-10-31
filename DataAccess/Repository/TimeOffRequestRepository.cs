@@ -21,5 +21,12 @@ namespace DataAccess.Repository
                  .Include(r => r.Reviews)
                  .FirstOrDefaultAsync();
         }
+
+        public async override Task<IReadOnlyCollection<TimeOffRequest>> FilterAsync(Expression<Func<TimeOffRequest, bool>> predicate)
+        {
+            return await Entities.Where(predicate)
+                 .Include(r => r.Reviews)
+                 .ToListAsync();
+        }
     }
 }
