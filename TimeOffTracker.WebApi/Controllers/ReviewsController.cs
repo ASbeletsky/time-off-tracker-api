@@ -38,7 +38,7 @@ namespace TimeOffTracker.WebApi.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpGet("/reviews")]
-        public async Task<IReadOnlyCollection<TimeOffRequestReviewApiModel>> Get(int? reviewerId, int? requestId = null, int? stateId = null, DateTime? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null)
+        public async Task<IReadOnlyCollection<TimeOffRequestReviewApiModel>> Get(int? reviewerId = null, int? requestId = null, int? stateId = null, DateTime? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null)
         {
             return await _service.GetAllAsync(reviewerId, requestId, stateId, startDate, endDate, name, typeId); ;
         }

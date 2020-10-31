@@ -30,20 +30,20 @@ namespace BusinessLogic.NotificationHandlers
 
             INotification new_notification = null;
 
-            if (requestfromDb.Reviews.Any(x => x.IsApproved == null))
+            if (requestfromDb.Reviews.Any(x => x.IsApproved == false))
             {
-                requestfromDb.State = VacationRequestState.InProgress;
-                new_notification = new RequestUpdatedNotification { Request = requestfromDb };
+                requestfromDb.State = VacationRequestState.Rejected;
+                new_notification = new RequestRejectedNotification { Request = requestfromDb };
             }
             else if (requestfromDb.Reviews.All(x => x.IsApproved == true))
             {
                 requestfromDb.State = VacationRequestState.Approved;
                 new_notification = new RequestApprovedNotification { Request = requestfromDb };
             }
-            else if (requestfromDb.Reviews.Any(x => x.IsApproved == false))
+            else if (requestfromDb.Reviews.Any(x => x.IsApproved == null))
             {
-                requestfromDb.State = VacationRequestState.Rejected;
-                new_notification = new RequestRejectedNotification { Request = requestfromDb };
+                requestfromDb.State = VacationRequestState.InProgress;
+                new_notification = new RequestUpdatedNotification { Request = requestfromDb };
             }
 
             await _requestRepository.UpdateAsync(requestfromDb);

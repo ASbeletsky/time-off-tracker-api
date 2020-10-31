@@ -57,7 +57,7 @@ namespace BusinessLogic.Services
                 throw new ConflictException("Name not found");
 
             Expression<Func<TimeOffRequestReview, bool>> condition = review =>
-                    (review.ReviewerId == reviewerId)
+                    (reviewerId == null || review.ReviewerId == reviewerId)
                     && (requestId == null || review.RequestId== requestId)
                     && (stateId == null || (int)review.Request.State == stateId)
                     && (startDate == null || review.Request.StartDate.Date == startDate)
