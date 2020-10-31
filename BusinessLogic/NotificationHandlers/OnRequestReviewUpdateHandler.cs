@@ -28,17 +28,26 @@ namespace BusinessLogic.NotificationHandlers
         {
             var requestfromDb = await _requestRepository.FindAsync(x => x.Id == notification.Request.Id);
 
-            if(requestfromDb.Reviews.Any(x => x.IsApproved == null))
+            INotification new_notification = null;
+
+            if (requestfromDb.Reviews.Any(x => x.IsApproved == null))
+            {
                 requestfromDb.State = VacationRequestState.InProgress;
-            else if(requestfromDb.Reviews.All(x => x.IsApproved == true))
+                new_notification = new RequestUpdatedNotification { Request = requestfromDb };
+            }
+            else if (requestfromDb.Reviews.All(x => x.IsApproved == true))
+            {
                 requestfromDb.State = VacationRequestState.Approved;
-            else if(requestfromDb.Reviews.Any(x => x.IsApproved == false))
+                new_notification = new RequestApprovedNotification { Request = requestfromDb };
+            }
+            else if (requestfromDb.Reviews.Any(x => x.IsApproved == false))
+            {
                 requestfromDb.State = VacationRequestState.Rejected;
+                new_notification = new RequestRejectedNotification { Request = requestfromDb };
+            }
 
             await _requestRepository.UpdateAsync(requestfromDb);
-
-            //var notification_approved = new RequestApprovedNotification { Request = await _requestRepository.FindAsync(notification.Request.Id) };
-            //await _mediator.Publish(notification_approved);
+            await _mediator.Publish(new_notification);
         }
     }
 }

@@ -82,11 +82,9 @@ namespace BusinessLogic.Services
          
             var reviewer = await _userRepository.FindAsync(userId);
 
-            bool reviwerIsMissed = (await _requestRepository
-                .FilterAsync(r => r.Id == reviewfromDb.RequestId && r.Reviews.Select(x => x.ReviewerId).Contains(userId)))
-                .Any() == false;
-
-            if (reviwerIsMissed) 
+            if ((await _requestRepository.FilterAsync(r => r.Id == reviewfromDb.RequestId && r.Reviews
+                .Select(x => x.ReviewerId).Contains(userId)))
+                .Any() == false) 
                 throw new ConflictException("The request is not actual!");
 
             if (IsReviewPassed(reviewfromDb, userId))
