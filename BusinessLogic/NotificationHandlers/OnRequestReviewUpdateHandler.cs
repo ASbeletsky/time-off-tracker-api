@@ -17,21 +17,26 @@ namespace BusinessLogic.NotificationHandlers
     class OnRequestReviewUpdateHandler : INotificationHandler<ReviewUpdateHandler>
     {
         IRepository<TimeOffRequest, int> _requestRepository;
-      
-        public OnRequestReviewUpdateHandler(IRepository<TimeOffRequest, int> requestRepository)
+        IMediator _mediator;
+        public OnRequestReviewUpdateHandler(IRepository<TimeOffRequest, int> requestRepository, IMediator mediator)
         {
             _requestRepository = requestRepository;
+            _mediator = mediator;
         }
 
         public async Task Handle(ReviewUpdateHandler notification, CancellationToken cancellationToken)
         {
             var requestfromDb = await _requestRepository.FindAsync(x => x.Id == notification.Request.Id);
 
-            if (requestfromDb.Reviews.All(x => x.IsApproved != null))
-            {
+            if (requestfromDb.Reviews.All(x => x.IsApproved == true))
                 requestfromDb.State = VacationRequestState.Approved;
-                await _requestRepository.UpdateAsync(requestfromDb);                
-            }             
+            else if(requestfromDb.Reviews.Any(x => x.IsApproved == false))
+                requestfromDb.State = VacationRequestState.Rejected;
+
+            await _requestRepository.UpdateAsync(requestfromDb);
+
+            var notification_approved = new RequestApprovedNotification { Request = await _requestRepository.FindAsync(notification.Request.Id) };
+            await _mediator.Publish(notification_approved);
         }
     }
 }

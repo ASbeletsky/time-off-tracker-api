@@ -46,19 +46,23 @@ namespace BusinessLogic.Services
                 await _reviewRepository.DeleteAsync(id);
         }
 
-        public async Task<IReadOnlyCollection<TimeOffRequestReviewApiModel>> GetAllAsync(int reviewerId, int? stateId = null, DateTime? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null)
-        {       
-            var user = (await _userRepository.FilterAsync(x => ((x.FirstName + " " + x.LastName).ToLower()).Contains(name.ToLower()))).FirstOrDefault();
+        public async Task<IReadOnlyCollection<TimeOffRequestReviewApiModel>> GetAllAsync(int? reviewerId = null, int? requestId = null, int? stateId = null, DateTime? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null)
+        {
+            User userName = null;
 
-            if(name != null && user == null)
+            if(name!= null)
+                userName = (await _userRepository.FilterAsync(x => ((x.FirstName + " " + x.LastName).ToLower()).Contains(name.ToLower()))).FirstOrDefault();
+
+            if(name != null && userName == null)
                 throw new ConflictException("Name not found");
 
             Expression<Func<TimeOffRequestReview, bool>> condition = review =>
                     (review.ReviewerId == reviewerId)
+                    && (requestId == null || review.RequestId== requestId)
                     && (stateId == null || (int)review.Request.State == stateId)
                     && (startDate == null || review.Request.StartDate.Date == startDate)
                     && (endDate == null || review.Request.EndDate.Date == endDate)
-                    && (name == null || review.Request.UserId == user.Id)
+                    && (name == null || review.Request.UserId == userName.Id)
                     && (typeId == null || (int)review.Request.Type == typeId);
 
             return _mapper.Map<IReadOnlyCollection<TimeOffRequestReviewApiModel>>(await _reviewRepository.FilterAsync(condition));
@@ -78,13 +82,15 @@ namespace BusinessLogic.Services
          
             var reviewer = await _userRepository.FindAsync(userId);
 
-            if((await _requestRepository.FilterWithIncludeAsync(r => r.Id == reviewfromDb.RequestId 
-            && r.Reviews.Select(x => x.ReviewerId).Contains(userId), 
-            r => r.Reviews)).Any() == false)
+            bool reviwerIsMissed = (await _requestRepository
+                .FilterAsync(r => r.Id == reviewfromDb.RequestId && r.Reviews.Select(x => x.ReviewerId).Contains(userId)))
+                .Any() == false;
+
+            if (reviwerIsMissed) 
                 throw new ConflictException("The request is not actual!");
 
-            if (isReapproval(reviewfromDb, userId))
-                    throw new ConflictException("The request has already been approved!");
+            if (IsReviewPassed(reviewfromDb, userId))
+                    throw new ConflictException("The request has already been <approved/rejected>!");
 
                 reviewfromDb.IsApproved = newModel.IsApproved;
                 reviewfromDb.Comment = newModel.Comment;
@@ -92,11 +98,11 @@ namespace BusinessLogic.Services
 
             await _reviewRepository.UpdateAsync(reviewfromDb);
 
-            var notification = new ReviewUpdateHandler { Request = reviewfromDb.Request };
+            var notification = new ReviewUpdateHandler { Request = await _requestRepository.FindAsync(reviewfromDb.RequestId) };
             await _mediator.Publish(notification);
         }
 
-        private bool isReapproval(TimeOffRequestReview review, int reviewerId)
+        private bool IsReviewPassed(TimeOffRequestReview review, int reviewerId)
         {
             return review.Request.Reviews.Where(x => x.ReviewerId == reviewerId && x.IsApproved != null).FirstOrDefault() != null ? true : false;
         }

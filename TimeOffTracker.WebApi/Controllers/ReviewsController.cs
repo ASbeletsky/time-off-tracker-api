@@ -28,16 +28,23 @@ namespace TimeOffTracker.WebApi.Controllers
         }
 
         [Authorize(Roles = "Manager, Accountant")]
-        [HttpGet("/reviews")]
-        public async Task<IReadOnlyCollection<TimeOffRequestReviewApiModel>> Get(int? stateId = null, DateTime ? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null)
+        [HttpGet("/user/reviews")]
+        public async Task<IReadOnlyCollection<TimeOffRequestReviewApiModel>> Get(int? requestId = null, int? stateId = null, DateTime ? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null)
         {
             var reviewerId = int.Parse(this.User.Identity.Name);
             
-            return await _service.GetAllAsync(reviewerId, stateId, startDate, endDate, name, typeId); ;
+            return await _service.GetAllAsync(reviewerId, requestId, stateId, startDate, endDate, name, typeId); ;
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("/reviews")]
+        public async Task<IReadOnlyCollection<TimeOffRequestReviewApiModel>> Get(int? reviewerId, int? requestId = null, int? stateId = null, DateTime? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null)
+        {
+            return await _service.GetAllAsync(reviewerId, requestId, stateId, startDate, endDate, name, typeId); ;
         }
 
         [Authorize(Roles = "Manager, Accountant")]
-        [HttpPut("/reviews/user/{id}")]
+        [HttpPut("/user/reviews/{id}")]
         public async Task Put(int id, [FromBody] TimeOffRequestReviewApiModel model)
         {
             var reviewerId = int.Parse(this.User.Identity.Name);
