@@ -8,6 +8,7 @@ using DataAccess.Static.Context;
 using Domain.EF_Models;
 using Domain.Enums;
 using MediatR;
+using MimeKit.Encodings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,15 +19,17 @@ namespace BusinessLogic.Services
 {
     public class TimeOffRequestService : ITimeOffRequestService
     {
-        IRepository<TimeOffRequest, int> _repository;
+        IRepository<TimeOffRequest, int> _requestRepository;
+        IRepository<TimeOffRequestReview, int> _reviewRepository;
         IMapper _mapper;
         ITimeOffRequestReviewService _timeOffRequestReviewService;
         IUserService _userService;
         IMediator _mediator;
 
-        public TimeOffRequestService(IRepository<TimeOffRequest, int> repository, IMapper mapper, ITimeOffRequestReviewService timeOffRequestReviewService, IUserService userService, IMediator mediator)
+        public TimeOffRequestService(IRepository<TimeOffRequest, int> repository, IMapper mapper, ITimeOffRequestReviewService timeOffRequestReviewService, IUserService userService, IMediator mediator, IRepository<TimeOffRequestReview, int> reviewRepository)
         {
-            _repository = repository;
+            _requestRepository = repository;
+            _reviewRepository = reviewRepository;
             _mapper = mapper;
             _timeOffRequestReviewService = timeOffRequestReviewService;
             _userService = userService;
@@ -41,7 +44,7 @@ namespace BusinessLogic.Services
             {
                 obj.StateId = (int)VacationRequestState.New;
                 TimeOffRequest request = _mapper.Map<TimeOffRequest>(obj);
-                await _repository.CreateAsync(request);
+                await _requestRepository.CreateAsync(request);
 
                 var notification = new RequestUpdatedNotification { Request = request };
                 await _mediator.Publish(notification);
@@ -58,21 +61,21 @@ namespace BusinessLogic.Services
                     && (stateId == null || (int)request.State == stateId) 
                     && (typeId == null || (int)request.Type == typeId); 
 
-                return _mapper.Map<IReadOnlyCollection<TimeOffRequestApiModel>>(await _repository.FilterAsync(condition));
+                return _mapper.Map<IReadOnlyCollection<TimeOffRequestApiModel>>(await _requestRepository.FilterAsync(condition));
             
         }
         public async Task<TimeOffRequestApiModel> GetByIdAsync(int requestId)
         {
-            return _mapper.Map<TimeOffRequestApiModel>(await _repository.FindAsync(x => x.Id == requestId));
+            return _mapper.Map<TimeOffRequestApiModel>(await _requestRepository.FindAsync(x => x.Id == requestId));
         }
         public async Task<TimeOffRequestApiModel> GetByIdAsync(int uderId, int requestId)
         {
-            return _mapper.Map<TimeOffRequestApiModel>(await _repository.FindAsync(x => x.UserId == uderId && x.Id == requestId));
+            return _mapper.Map<TimeOffRequestApiModel>(await _requestRepository.FindAsync(x => x.UserId == uderId && x.Id == requestId));
         }
 
         public async Task UpdateAsync(int requestId, TimeOffRequestApiModel newModel)
         {
-            var requestFromDb = await _repository.FindAsync(requestId);
+            var requestFromDb = await _requestRepository.FindAsync(x => x.Id == requestId);
 
             switch (requestFromDb.State)
             {
@@ -85,8 +88,32 @@ namespace BusinessLogic.Services
                     break;
 
                 case VacationRequestState.InProgress:
-                    //Reviewers
 
+                    FillReviewers(newModel);
+
+                    foreach (var reviewer in newModel.ReviewsIds.Skip(1))
+                    {
+                        if (requestFromDb.Reviews.Select(x => x.ReviewerId).Contains(reviewer))
+                            continue;
+                        else
+                            requestFromDb.Reviews.Add(new TimeOffRequestReview() { ReviewerId = reviewer, RequestId = requestFromDb.Id});                            
+                    }
+
+                    var res_delete = requestFromDb.Reviews.Select(x => x.ReviewerId).Except(newModel.Reviews.Select(x => x.ReviewerId));
+                  
+                    foreach (var item in res_delete)
+                    {
+                        var reviewer = requestFromDb.Reviews.Where(x => x.ReviewerId == item && x.IsApproved == null && x.ReviewerId != 1).FirstOrDefault();
+
+                        if (reviewer == null)
+                            throw new ConflictException("Change is impossible!!");
+                        else
+                            await _reviewRepository.DeleteAsync(reviewer.Id);
+
+                        if (res_delete.Count() == 0)
+                            break;
+                    }
+                      
                     break;
 
                 case VacationRequestState.Approved:
@@ -95,13 +122,9 @@ namespace BusinessLogic.Services
                         throw new ConflictException("Incorrect dates");
                     if (String.IsNullOrEmpty(newModel.Comment))
                         throw new RequiredArgumentNullException("Comment field is empty");
-
-                    //if Reviewers
-                    requestFromDb.EndDate = newModel.EndDate;
-                    requestFromDb.StartDate = newModel.StartDate;
-                    requestFromDb.Comment = newModel.Comment;
+                    
                     requestFromDb.State = VacationRequestState.Rejected;
-                    //reviewers update
+                 
                     await Duplicate(_mapper.Map<TimeOffRequestApiModel>(requestFromDb), requestFromDb.Id);
 
                     break;
@@ -111,36 +134,44 @@ namespace BusinessLogic.Services
                         throw new StateException("State does not allow the request");
             }
 
-            await _repository.UpdateAsync(requestFromDb);           
+            await _requestRepository.UpdateAsync(requestFromDb);           
         }
 
         public async Task Duplicate(TimeOffRequestApiModel duplicateModel, int parentId)
         {
-            var newModel = new TimeOffRequest();
-            duplicateModel.ParentRequestId = parentId;
-            duplicateModel.StateId = (int)VacationRequestState.New;
-            //duplicateModel.ReviewsIds = null;
-            //duplicateModel.Reviews = null;
-            await _repository.CreateAsync(_mapper.Map(duplicateModel, newModel));
+            var newRequest = new TimeOffRequest();
+            newRequest.ParentRequestId = parentId;
+            newRequest.State = VacationRequestState.New;
+            newRequest.Comment = duplicateModel.Comment;
+            newRequest.EndDate = duplicateModel.EndDate;
+            newRequest.StartDate = duplicateModel.StartDate;
+            newRequest.Type = (TimeOffType)duplicateModel.TypeId;
+            newRequest.UserId = duplicateModel.UserId;
+            newRequest.Duration = (TimeOffDuration)duplicateModel.DurationId;
 
-            var notification = new RequestUpdatedNotification { Request = newModel };
+            foreach (var review in duplicateModel.Reviews)
+                newRequest.Reviews.Add(new TimeOffRequestReview() { RequestId= newRequest.Id, ReviewerId = review.ReviewerId});
+
+            await _requestRepository.CreateAsync(newRequest);
+
+            var notification = new RequestUpdatedNotification { Request = newRequest };
             await _mediator.Publish(notification);
         }
 
         public async Task DeleteAsync(int requestId)
         {
-            if (await _repository.FindAsync(x => x.Id == requestId) != null)
-                await _repository.DeleteAsync(requestId);
+            if (await _requestRepository.FindAsync(x => x.Id == requestId) != null)
+                await _requestRepository.DeleteAsync(requestId);
         }
 
         public async Task RejectedAsync(int userId, int requestId)
         {
-            var requestFromDb = await _repository.FindAsync(x => x.UserId == userId && x.Id == requestId);
+            var requestFromDb = await _requestRepository.FindAsync(x => x.UserId == userId && x.Id == requestId);
 
             if (requestFromDb != null)
             {
                 requestFromDb.State = VacationRequestState.Rejected;
-                await _repository.UpdateAsync(requestFromDb);
+                await _requestRepository.UpdateAsync(requestFromDb);
             }
         }
 
@@ -190,17 +221,12 @@ namespace BusinessLogic.Services
            }
         }
 
-        //private async Task<ICollection<TimeOffRequestReview>> UpdateReviewers(TimeOffRequestApiModel newModel)
-        //{
-            
-        //}
-
         private async Task<bool> IntersectionDates(TimeOffRequestApiModel obj)
         {
             if (obj.EndDate < obj.StartDate)
                 return true;
 
-            return (await _repository.FilterAsync((u => u.UserId == obj.UserId 
+            return (await _requestRepository.FilterAsync((u => u.UserId == obj.UserId 
             && (obj.StartDate >= u.StartDate && obj.StartDate <= u.EndDate) 
                 || (obj.EndDate <= u.EndDate && obj.StartDate >= u.StartDate)))).Any();
         }
