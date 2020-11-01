@@ -149,6 +149,9 @@
   <data name="Dates" xml:space="preserve">
     <value>Dates</value>
   </data>
+  <data name="DeclinedByTheOwner" xml:space="preserve">
+    <value>Declined by the owner</value>
+  </data>
   <data name="Duration" xml:space="preserve">
     <value>Duration</value>
   </data>

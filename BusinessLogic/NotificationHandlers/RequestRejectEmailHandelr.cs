@@ -1,5 +1,6 @@
 ﻿using ApiModels.Models;
 using AutoMapper;
+using BusinessLogic.Exceptions;
 using BusinessLogic.Notifications;
 using BusinessLogic.Services.Interfaces;
 using DataAccess.Repository.Interfaces;
@@ -10,10 +11,12 @@ using EmailTemplateRender.Views.Emails;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Localization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TimeOffTracker.WebApi.Exceptions;
 
 namespace BusinessLogic.NotificationHandlers
 {
@@ -50,16 +53,35 @@ namespace BusinessLogic.NotificationHandlers
             User author = await _userManager.FindByIdAsync(request.UserId.ToString());
             model.AuthorFullName = $"{author.FirstName} {author.LastName}".Trim();
 
-            IEnumerable<TimeOffRequestReview> reviews = await _reviewRepository.FilterWithIncludeAsync(rev => rev.RequestId == request.Id, rev => rev.Reviewer);
+            IEnumerable<TimeOffRequestReview> reviews = await _reviewRepository.FilterAsync(rev => rev.RequestId == request.Id);
 
-            var approvedPeopleNames = reviews.Where(r => r.IsApproved).Select(r => $"{r.Reviewer.FirstName} {r.Reviewer.LastName}".Trim()).ToList();
+            foreach (var review in reviews)
+                review.Reviewer = await _userManager.FindByIdAsync(review.ReviewerId.ToString());
+
+            var approvedPeopleNames = reviews.Where(r => r.IsApproved == true).Select(r => $"{r.Reviewer.FirstName} {r.Reviewer.LastName}".Trim()).ToList();
             model.ApprovedFullNames = string.Join(", ", approvedPeopleNames);
 
-            model.RejectedBy = reviews.Where(r => !r.IsApproved).Select(r => $"{r.Reviewer.FirstName} {r.Reviewer.LastName}".Trim()).FirstOrDefault();
-            //model.RejectComment = request.RejectComment... // Where can i get this comment?
+
+            var rejectReview = reviews.Where(r => r.IsApproved == false).FirstOrDefault();
+            bool isDeclineByTheOwner = rejectReview == null;
+            if (isDeclineByTheOwner)
+            {
+                model.RejectedBy = model.AuthorFullName;
+                model.RejectComment = _localizer.GetString("DeclinedByTheOwner");
+            }
+            else
+            {
+                var rejectPerson = await _userManager.FindByIdAsync(rejectReview.ReviewerId.ToString());
+                if (rejectPerson == null)
+                    throw new UserNotFoundException($"No user found who canceled the request. UserId: {rejectReview.ReviewerId}");
+
+                model.RejectedBy = $"{rejectPerson.FirstName} {rejectPerson.LastName}".Trim();
+                model.RejectComment = rejectReview.Comment;
+            }
 
             var dataForViewModel = new RequestEmailViewModel(model);
 
+            if(!isDeclineByTheOwner)
             {   //Author mail
                 string authorAddress = author.Email;
                 string authorTheme = string.Format(
@@ -84,8 +106,7 @@ namespace BusinessLogic.NotificationHandlers
                         );
 
                 string rejectedBody = await _razorViewToStringRenderer.RenderViewToStringAsync("/Views/Emails/RequestReject/RequestReject.cshtml", dataForViewModel);
-
-                foreach(TimeOffRequestReview review in reviews.Where(r => r.IsApproved))
+                foreach(TimeOffRequestReview review in reviews.Where(r => r.IsApproved == true))
                 {
                     string approvedPerson = review.Reviewer.Email;
                     await _mailer.SendEmailAsync(approvedPerson, rejectedTheme, rejectedBody);

@@ -149,6 +149,9 @@
   <data name="Dates" xml:space="preserve">
     <value>Даты</value>
   </data>
+  <data name="DeclinedByTheOwner" xml:space="preserve">
+    <value>Отменена сотрудником</value>
+  </data>
   <data name="Duration" xml:space="preserve">
     <value>Использовать</value>
   </data>
