@@ -50,7 +50,10 @@ namespace BusinessLogic.NotificationHandlers
             User author = await _userManager.FindByIdAsync(request.UserId.ToString());
             model.AuthorFullName = $"{author.FirstName} {author.LastName}".Trim();
 
-            IEnumerable<TimeOffRequestReview> reviews = await _reviewRepository.FilterWithIncludeAsync(rev => rev.RequestId == request.Id, rev => rev.Reviewer);
+            IEnumerable<TimeOffRequestReview> reviews = await _reviewRepository.FilterAsync(rev => rev.RequestId == request.Id);
+
+            foreach (var review in reviews)
+                review.Reviewer = await _userManager.FindByIdAsync(review.ReviewerId.ToString());
 
             var approvedPeopleNames = reviews.Where(r => r.IsApproved == true).Select(r => $"{r.Reviewer.FirstName} {r.Reviewer.LastName}".Trim()).ToList();
             model.ApprovedFullNames = string.Join(", ", approvedPeopleNames);
