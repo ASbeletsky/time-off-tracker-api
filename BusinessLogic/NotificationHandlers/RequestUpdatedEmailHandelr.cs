@@ -52,10 +52,10 @@ namespace BusinessLogic.NotificationHandlers
 
             IEnumerable<TimeOffRequestReview> reviews = await _reviewRepository.FilterWithIncludeAsync(rev => rev.RequestId == request.Id, rev => rev.Reviewer);
 
-            var approvedPeopleNames = reviews.Where(r => r.IsApproved).Select(r => $"{r.Reviewer.FirstName} {r.Reviewer.LastName}".Trim()).ToList();
+            var approvedPeopleNames = reviews.Where(r => r.IsApproved == true).Select(r => $"{r.Reviewer.FirstName} {r.Reviewer.LastName}".Trim()).ToList();
             model.ApprovedFullNames = string.Join(", ", approvedPeopleNames);
 
-            string address = reviews.Where(r => !r.IsApproved).Select(r => r.Reviewer.Email).FirstOrDefault();
+            string address = reviews.Where(r => r.IsApproved == null).Select(r => r.Reviewer.Email).FirstOrDefault();
             string theme = string.Format(
                 _localizer.GetString("UpdatedTheme"),
                     _localizer.GetString(model.RequestType),
