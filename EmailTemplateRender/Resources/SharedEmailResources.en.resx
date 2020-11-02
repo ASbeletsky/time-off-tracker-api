@@ -134,11 +134,23 @@
     <value>[Leave] Approved: {0} - {1} - {2}-{3}</value>
     <comment>Тема письма про утвержденную заявку</comment>
   </data>
+  <data name="AuthorRequestRejected" xml:space="preserve">
+    <value>Your request has been rejected!</value>
+  </data>
+  <data name="ByWhom" xml:space="preserve">
+    <value>By whom</value>
+  </data>
+  <data name="Cause" xml:space="preserve">
+    <value>Cause</value>
+  </data>
   <data name="Comment" xml:space="preserve">
     <value>Comment</value>
   </data>
   <data name="Dates" xml:space="preserve">
     <value>Dates</value>
+  </data>
+  <data name="DeclinedByTheOwner" xml:space="preserve">
+    <value>Declined by the owner</value>
   </data>
   <data name="Duration" xml:space="preserve">
     <value>Duration</value>
@@ -166,6 +178,9 @@
     <value>[Leave] Rejected: {0} - {1} - {2}-{3}</value>
     <comment>Тема письма про отклоненную заявку</comment>
   </data>
+  <data name="RequestRejected" xml:space="preserve">
+    <value>Request has been rejected.</value>
+  </data>
   <data name="SickLeaveWithDocuments" xml:space="preserve">
     <value>Sick leave with documents</value>
   </data>
@@ -187,5 +202,8 @@
   </data>
   <data name="Who" xml:space="preserve">
     <value>Who</value>
+  </data>
+  <data name="YouCanCreateANewRequest" xml:space="preserve">
+    <value>You can take into account the comments and create a new request.</value>
   </data>
 </root>
