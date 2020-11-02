@@ -14,7 +14,8 @@ namespace BusinessLogic.Services.Interfaces
         Task<TimeOffRequestApiModel> GetByIdAsync(int userId, int requestId);
         Task UpdateAsync(int userId, TimeOffRequestApiModel newModel);
         Task DeleteAsync(int requestId);
-        Task RejectedAsync(int userId, int requestId);
-      
+
+        Task ModifyAfterApprovedAsync(int userId, int requestId, TimeOffRequestApiModel newModel);
+        Task RejectedByOwnerAsync(int userId, int requestId);
     }
 }

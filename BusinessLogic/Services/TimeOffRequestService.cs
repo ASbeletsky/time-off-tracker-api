@@ -8,6 +8,7 @@ using DataAccess.Static.Context;
 using Domain.EF_Models;
 using Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -133,18 +134,60 @@ namespace BusinessLogic.Services
                 await _repository.DeleteAsync(requestId);
         }
 
-        public async Task RejectedAsync(int userId, int requestId)
+        public async Task RejectedByOwnerAsync(int userId, int requestId)
         {
-            var requestFromDb = await _repository.FindAsync(x => x.UserId == userId && x.Id == requestId);
+            var requestFromDb = await CheckRequestAuthor(userId, requestId);
 
-            if (requestFromDb != null)
+            if (requestFromDb.EndDate <= DateTime.Now.Date)
+                throw new ConflictException("End date of the request must be later than the current date");
+
+            requestFromDb.State = VacationRequestState.Rejected;
+            requestFromDb.RejectType = TimeOffRejectType.RejectByAuthor;
+            await _repository.UpdateAsync(requestFromDb);
+
+            var notification = new RequestRejectedNotification { Request = requestFromDb };
+            await _mediator.Publish(notification);
+        }
+
+        public async Task ModifyAfterApprovedAsync(int userId, int requestId, TimeOffRequestApiModel modifyRequest)
+        {
+            var requestFromDb = await CheckRequestAuthor(userId, requestId);
+            modifyRequest.UserId = userId;
+
+            if (requestFromDb.EndDate <= DateTime.Now.Date)
+                throw new ConflictException("End date of the request must be later than the current date");
+
+            VacationRequestState originState = requestFromDb.State;
+
+            requestFromDb.State = VacationRequestState.Rejected;
+            requestFromDb.RejectType = TimeOffRejectType.ModifyByAuthor;
+            await _repository.UpdateAsync(requestFromDb); //no interception date with this request
+
+            try
             {
-                requestFromDb.State = VacationRequestState.Rejected;
-                await _repository.UpdateAsync(requestFromDb);
-
-                var notification = new RequestRejectedNotification { Request = requestFromDb };
-                await _mediator.Publish(notification);
+                await AddAsync(modifyRequest);
             }
+            catch (Exception ex)
+            {
+                requestFromDb.State = originState;
+                requestFromDb.RejectType = TimeOffRejectType.ByReviewer;
+                await _repository.UpdateAsync(requestFromDb);   //if problem - then abort changes
+
+                throw ex;
+            }
+
+        }
+
+        private async Task<TimeOffRequest> CheckRequestAuthor(int userId, int requestId)
+        {
+            var requestFromDb = await _repository.FindAsync(x => x.Id == requestId);
+
+            if (requestFromDb == null)
+                throw new RequestNotFoundException($"Can't find request with id {requestId}");
+            if (requestFromDb.UserId != userId)
+                throw new ConflictException("Current user is not the author of the request");
+
+            return requestFromDb;
         }
 
         private async Task<bool> ValidateAccountingReviewer(TimeOffRequestReview review)
@@ -203,9 +246,10 @@ namespace BusinessLogic.Services
             if (obj.EndDate < obj.StartDate)
                 return true;
 
-            return (await _repository.FilterAsync((u => u.UserId == obj.UserId 
-            && (obj.StartDate >= u.StartDate && obj.StartDate <= u.EndDate) 
-                || (obj.EndDate <= u.EndDate && obj.StartDate >= u.StartDate)))).Any();
+            return (await _repository.FilterAsync(u => u.UserId == obj.UserId 
+                    && u.State != VacationRequestState.Rejected 
+                    && (obj.StartDate >= u.StartDate && obj.StartDate <= u.EndDate) || (obj.EndDate <= u.EndDate && obj.StartDate >= u.StartDate))
+                ).Any();
         }
     }
 }
