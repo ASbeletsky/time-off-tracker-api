@@ -60,6 +60,9 @@ namespace BusinessLogic.Services
                 throw new UserNotFoundException($"Can't find user with Id: {userModel.Id}");
             if (await _roleManager.FindByNameAsync(userModel.Role) == null)
                 throw new RoleNotFoundException($"Role does not exist: {userModel.Role}");
+            if(userModel.Email == null)
+                throw new ConflictException($"Email can't be null");
+            
             try
             {
                 var userRole = await _userManager.GetRolesAsync(user);
