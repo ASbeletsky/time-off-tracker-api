@@ -14,6 +14,7 @@ namespace TimeOffTracker.WebApi.MapperProfile
         {
             CreateMap<User, UserApiModel>();
             CreateMap<UserApiModel, User>()
+                .ForMember(user => user.NormalizedEmail, opt => opt.MapFrom(model => model.Email.ToUpper()))
                 .ForMember(user => user.UserName, opt => opt.Ignore());
                 
 
