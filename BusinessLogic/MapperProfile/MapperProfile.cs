@@ -33,14 +33,12 @@ namespace TimeOffTracker.WebApi.MapperProfile
                 .ForMember(request => request.State, opt => opt.MapFrom(model => (VacationRequestState)model.StateId))
                 .ForMember(request => request.Duration, opt => opt.MapFrom(model => (TimeOffDuration)model.DurationId))
                 .ForMember(request => request.Reviews, opt => opt.MapFrom(model => model.Reviews))
-                .ForMember(request => request.RejectType, opt => opt.Ignore())
                 .ForMember(request => request.Id, opt => opt.Ignore());
 
             CreateMap<TimeOffRequest, TimeOffRequestApiModel>()
                 .ForMember(request => request.TypeId, opt => opt.MapFrom(model => (int)model.Type))
                 .ForMember(request => request.StateId, opt => opt.MapFrom(model => (int)model.State))
                 .ForMember(request => request.DurationId, opt => opt.MapFrom(model => (int)model.Duration))
-                .ForMember(request => request.RejectTypeId, opt => opt.MapFrom(model => (int)model.RejectType))
                 .ForMember(request => request.ReviewsIds, opt => opt.Ignore());
                 
 

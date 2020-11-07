@@ -1,7 +1,6 @@
 ﻿using ApiModels.Models;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BusinessLogic.Services.Interfaces
@@ -15,7 +14,6 @@ namespace BusinessLogic.Services.Interfaces
         Task UpdateAsync(int userId, TimeOffRequestApiModel newModel);
         Task DeleteAsync(int requestId);
 
-        Task ModifyAfterApprovedAsync(int userId, int requestId, TimeOffRequestApiModel newModel);
         Task RejectedByOwnerAsync(int userId, int requestId);
     }
 }

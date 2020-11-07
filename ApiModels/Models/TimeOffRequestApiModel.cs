@@ -26,7 +26,6 @@ namespace ApiModels.Models
         public string Comment { get; set; }
         [Required]
         public int StateId { get; set; }
-        public int RejectTypeId { get; set; }
         public int DurationId { get; set; }
         public UserApiModel User { get; set; }
         [Required]
