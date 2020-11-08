@@ -30,6 +30,6 @@ namespace ApiModels.Models
         public UserApiModel User { get; set; }
         [Required]
         public int UserId { get; set; }
-        public int ParentRequestId { get; set; }
+        public int? ParentRequestId { get; set; }
     }
 }

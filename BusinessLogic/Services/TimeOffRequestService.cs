@@ -203,7 +203,7 @@ namespace BusinessLogic.Services
 
             return (await _repository.FilterAsync(u => u.UserId == obj.UserId
                     && u.State != VacationRequestState.Rejected
-                    && u.Id != obj.ParentRequestId
+                    && (obj.ParentRequestId == null || u.Id != obj.ParentRequestId)
                     && ((obj.StartDate >= u.StartDate && obj.StartDate <= u.EndDate) || (obj.EndDate <= u.EndDate && obj.StartDate >= u.StartDate)))
                 ).Any();
         }
