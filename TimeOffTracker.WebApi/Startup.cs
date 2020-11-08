@@ -109,16 +109,12 @@ namespace TimeOffTracker.WebApi
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-
             //CORS setting
-            app.UseCors(builder => builder.AllowAnyOrigin());
-            //.WithOrigins(<front address>)
-            //.AllowAnyMethod()
-            //.AllowCredentials()
+            app.UseCors(builder => builder
+                .AllowAnyOrigin() //.WithOrigins(<front address>)
+                .AllowAnyHeader()
+                .AllowAnyMethod());
+            
 
             app.UseMvc();
         }
