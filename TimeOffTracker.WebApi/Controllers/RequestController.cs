@@ -1,22 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using ApiModels.Models;
-using BusinessLogic.Exceptions;
-using BusinessLogic.Services;
 using BusinessLogic.Services.Interfaces;
-using Domain.EF_Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
-using TimeOffTracker.WebApi.Filters;
 
 namespace TimeOffTracker.WebApi.Controllers
 {
@@ -89,9 +79,9 @@ namespace TimeOffTracker.WebApi.Controllers
         }
 
         [HttpDelete("/user/requests/{requestId}")]
-        public async Task Delete(int requestId, int userId)
+        public async Task RejectByOwner(int requestId)
         {
-            await _service.RejectedAsync(int.Parse(this.User.Identity.Name), requestId);
+            await _service.RejectedByOwnerAsync(int.Parse(this.User.Identity.Name), requestId);
         }
     }
 }

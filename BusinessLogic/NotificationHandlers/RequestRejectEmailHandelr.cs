@@ -1,17 +1,16 @@
 ﻿using ApiModels.Models;
 using AutoMapper;
-using BusinessLogic.Exceptions;
 using BusinessLogic.Notifications;
 using BusinessLogic.Services.Interfaces;
 using DataAccess.Repository.Interfaces;
 using Domain.EF_Models;
+using Domain.Enums;
 using EmailTemplateRender;
 using EmailTemplateRender.Services.Interfaces;
 using EmailTemplateRender.Views.Emails;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Localization;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -48,6 +47,7 @@ namespace BusinessLogic.NotificationHandlers
         public async Task Handle(RequestRejectedNotification notification, CancellationToken cancellationToken)
         {
             TimeOffRequest request = notification.Request;
+
             RequestDataForEmailModel model = _mapper.Map<RequestDataForEmailModel>(request);
 
             User author = await _userManager.FindByIdAsync(request.UserId.ToString());
@@ -63,7 +63,7 @@ namespace BusinessLogic.NotificationHandlers
 
 
             var rejectReview = reviews.Where(r => r.IsApproved == false).FirstOrDefault();
-            bool isDeclineByTheOwner = rejectReview == null;
+            bool isDeclineByTheOwner = request.State == VacationRequestState.Rejected && request.ModifiedByUserId == author.Id;
             if (isDeclineByTheOwner)
             {
                 model.RejectedBy = model.AuthorFullName;
@@ -92,7 +92,6 @@ namespace BusinessLogic.NotificationHandlers
                         );
 
                 string authorBody = await _razorViewToStringRenderer.RenderViewToStringAsync("/Views/Emails/RequestReject/RequestRejectForAuthor.cshtml", dataForViewModel);
-
                 await _mailer.SendEmailAsync(authorAddress, authorTheme, authorBody);
             }
 

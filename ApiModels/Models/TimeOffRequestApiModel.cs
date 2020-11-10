@@ -11,6 +11,7 @@ namespace ApiModels.Models
         {
             Reviews = new List<TimeOffRequestReviewApiModel>();
             ReviewsIds = new List<int>();
+            DurationId = 2;
         }
         public int Id { get; set; }
         [Required]
@@ -30,6 +31,7 @@ namespace ApiModels.Models
         public UserApiModel User { get; set; }
         [Required]
         public int UserId { get; set; }
-        public int ParentRequestId { get; set; }
+        public int? ModifiedByUserId { get; set; }
+        public int? ParentRequestId { get; set; }
     }
 }
