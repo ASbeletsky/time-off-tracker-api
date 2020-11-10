@@ -47,8 +47,6 @@ namespace BusinessLogic.NotificationHandlers
         public async Task Handle(RequestRejectedNotification notification, CancellationToken cancellationToken)
         {
             TimeOffRequest request = notification.Request;
-            if (request.RejectType == TimeOffRejectType.ModifyByAuthor)
-                return;
 
             RequestDataForEmailModel model = _mapper.Map<RequestDataForEmailModel>(request);
 
@@ -65,7 +63,7 @@ namespace BusinessLogic.NotificationHandlers
 
 
             var rejectReview = reviews.Where(r => r.IsApproved == false).FirstOrDefault();
-            bool isDeclineByTheOwner = request.RejectType == TimeOffRejectType.RejectByAuthor;
+            bool isDeclineByTheOwner = request.State == VacationRequestState.Rejected && request.ModifiedByUserId == author.Id;
             if (isDeclineByTheOwner)
             {
                 model.RejectedBy = model.AuthorFullName;

@@ -78,13 +78,6 @@ namespace TimeOffTracker.WebApi.Controllers
             await _service.DeleteAsync(requestId);
         }
 
-        [HttpPut("/user/requests/{requestId}")]
-        public async Task ModifyAfterApproved(int requestId, [FromBody] TimeOffRequestApiModel newModel)
-        {
-            newModel.UserId = int.Parse(this.User.Identity.Name);
-            await _service.UpdateAsync(requestId, newModel);
-        }
-
         [HttpDelete("/user/requests/{requestId}")]
         public async Task RejectByOwner(int requestId)
         {

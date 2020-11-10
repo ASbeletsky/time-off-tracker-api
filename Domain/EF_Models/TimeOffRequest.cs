@@ -20,10 +20,10 @@ namespace Domain.EF_Models
         public string Comment { get; set; }
         public string ProjectRole { get; set; }
         public VacationRequestState State { get; set; }
-        public TimeOffRejectType RejectType { get; set; }
         public TimeOffDuration Duration { get; set; }
         public User User { get; set; }
         public int UserId { get; set; }
+        public int? ModifiedByUserId { get; set; }
         public int? ParentRequestId { get; set; }
     }
 }
