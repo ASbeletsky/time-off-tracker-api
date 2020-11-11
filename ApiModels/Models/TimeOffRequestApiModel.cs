@@ -31,6 +31,7 @@ namespace ApiModels.Models
         public UserApiModel User { get; set; }
         [Required]
         public int UserId { get; set; }
+        public bool IsDateIntersectionAllowed { get; set; }
         public int? ModifiedByUserId { get; set; }
         public int? ParentRequestId { get; set; }
     }
