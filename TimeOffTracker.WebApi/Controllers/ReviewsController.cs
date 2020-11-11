@@ -29,7 +29,7 @@ namespace TimeOffTracker.WebApi.Controllers
 
         [Authorize(Roles = "Manager, Accountant")]
         [HttpGet("/user/reviews")]
-        public async Task<IReadOnlyCollection<TimeOffRequestReviewApiModel>> Get(int? requestId = null, int? stateId = null, DateTime ? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null)
+        public async Task<IEnumerable<TimeOffRequestReviewApiModel>> Get(int? requestId = null, int? stateId = null, DateTime ? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null)
         {
             var reviewerId = int.Parse(this.User.Identity.Name);
             
@@ -38,7 +38,7 @@ namespace TimeOffTracker.WebApi.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpGet("/reviews")]
-        public async Task<IReadOnlyCollection<TimeOffRequestReviewApiModel>> Get(int? reviewerId = null, int? requestId = null, int? stateId = null, DateTime? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null)
+        public async Task<IEnumerable<TimeOffRequestReviewApiModel>> Get(int? reviewerId = null, int? requestId = null, int? stateId = null, DateTime? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null)
         {
             return await _service.GetAllAsync(reviewerId, requestId, stateId, startDate, endDate, name, typeId); ;
         }
