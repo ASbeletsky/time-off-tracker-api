@@ -26,7 +26,7 @@ namespace DataAccess.Context
                 .HasOne(review => review.Request)
                 .WithMany(request => request.Reviews)
                 .HasForeignKey(review => review.RequestId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<TimeOffRequest>()
                 .HasOne(req => req.User)
