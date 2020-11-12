@@ -39,6 +39,8 @@ namespace BusinessLogic.Infrastructure
 
             services.Configure<SmtpSettings>(opt => configuration.GetSection("SmtpSettings").Bind(opt));
             services.AddSingleton<IEmailService, EmailService>();
+
+            services.Configure<UIConfig>(opt => configuration.GetSection("UIConfig").Bind(opt));
         }
         public static async Task ConfigureIdentityInicializerAsync(IServiceProvider provider)
         {
