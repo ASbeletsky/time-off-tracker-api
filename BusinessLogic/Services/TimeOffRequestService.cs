@@ -80,25 +80,26 @@ namespace BusinessLogic.Services
             if (newModel.UserId != requestFromDb.UserId)      //only author can change his own request
                 throw new ConflictException("Current user is not the author of the request");
 
+            bool needToNotify = false; 
+
             using (var transactionScope = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled))
             {
                 switch (requestFromDb.State)
                 {
                     case VacationRequestState.New:
                         FillReviewers(newModel);
-                        newModel.StateId = (int)VacationRequestState.New;
 
-                        newModel.ParentRequestId = requestFromDb.Id; //prevent date intersection
+                        newModel.ParentRequestId = requestFromDb.Id;
                         if (await CheckNewRequest(newModel))
                         {
-                            newModel.ParentRequestId = null;
+                            newModel.StateId = (int)VacationRequestState.New;
                             _mapper.Map(newModel, requestFromDb);
                         }
-
+                        needToNotify = true;
                         break;
 
                     case VacationRequestState.InProgress:
-                        await ChangeAsync(requestFromDb, newModel);
+                        needToNotify = await ChangeAsync(requestFromDb, newModel);
                         break;
 
                     case VacationRequestState.Approved:
@@ -111,6 +112,12 @@ namespace BusinessLogic.Services
 
                 await _repository.UpdateAsync(requestFromDb);
                 transactionScope.Complete();
+            }
+
+            if (needToNotify) //incorrect information gets into the letter inside the TransactionScope
+            {
+                var notification = new RequestUpdatedNotification { Request = requestFromDb };
+                await _mediator.Publish(notification);
             }
         }
 
@@ -139,37 +146,38 @@ namespace BusinessLogic.Services
             await _mediator.Publish(notification);
         }
 
-        private async Task ChangeAsync(TimeOffRequest sourceRequest, TimeOffRequestApiModel changedModel)
+        private async Task<bool> ChangeAsync(TimeOffRequest sourceRequest, TimeOffRequestApiModel changedModel)
         {
-            var approvedReviewer = sourceRequest.Reviews.TakeWhile(r => r.IsApproved == true);
-            //approved reviews mustn't change
-            if (!Enumerable.SequenceEqual(approvedReviewer.Select(r => r.ReviewerId), changedModel.ReviewsIds.Take(approvedReviewer.Count())))
-                throw new ConflictException("Approved reviews can't be changed");
+            var approvedReviews = sourceRequest.Reviews.TakeWhile(r => r.IsApproved == true);
+            
+            if (!Enumerable.SequenceEqual(approvedReviews.Select(r => r.ReviewerId), changedModel.ReviewsIds.Take(approvedReviews.Count())))
+                throw new ConflictException("Approved reviews can't be changed");   //approved reviews mustn't change
 
-            var notApprovedReviews = sourceRequest.Reviews.Skip(approvedReviewer.Count()).ToList();
-            var newReviewers = changedModel.ReviewsIds.Skip(approvedReviewer.Count()).ToList();
+            var replacedReviews = sourceRequest.Reviews.Skip(approvedReviews.Count()).ToList();
+            var newReviewers = changedModel.ReviewsIds.Skip(approvedReviews.Count()).ToList();
+
             if (!newReviewers.Any())
-                throw new ConflictException("Last review must be not approved");
+                throw new ConflictException("Last review can't be already approved");
 
-            foreach (TimeOffRequestReview review in notApprovedReviews) //delete not approved
-                await _reviewRepository.DeleteAsync(review.Id);
+            bool isActiveReviewReplace = replacedReviews.First().ReviewerId != newReviewers.First();
+            if (!isActiveReviewReplace)
+            {
+                replacedReviews.RemoveAt(0);
+                newReviewers.RemoveAt(0);
+            }
 
-            foreach (int reviewerId in newReviewers)                    //Add new review list
+            foreach (TimeOffRequestReview review in replacedReviews)    //delete replaced reviews
+                sourceRequest.Reviews.Remove(review);
+
+            foreach (int reviewerId in newReviewers)                    //add new reviews
             {
                 if (await CanBeReviewer(reviewerId))
-                {
-                    var review = new TimeOffRequestReview() { ReviewerId = reviewerId, RequestId = sourceRequest.Id };
-                    await _reviewRepository.CreateAsync(review);
-                }
+                    sourceRequest.Reviews.Add(new TimeOffRequestReview() { ReviewerId = reviewerId, RequestId = sourceRequest.Id });
                 else
                     throw new ConflictException($"User with id {reviewerId} can't be a reviewer");
             }
 
-            if (notApprovedReviews.First().ReviewerId != newReviewers.First())  //if change current reviewer
-            {
-                var notification = new RequestUpdatedNotification { Request = sourceRequest };
-                await _mediator.Publish(notification);
-            }
+            return isActiveReviewReplace;
         }
 
         private async Task<bool> CanBeReviewer(int userId)
