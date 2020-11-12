@@ -251,7 +251,8 @@ namespace BusinessLogic.Services
             if (obj.EndDate < obj.StartDate)
                 throw new ConflictException("End date can't be earlier than start date");
 
-            return (await _repository.FilterAsync(u => u.UserId == obj.UserId
+            return obj.IsDateIntersectionAllowed || 
+                (await _repository.FilterAsync(u => u.UserId == obj.UserId
                     && u.State != VacationRequestState.Rejected
                     && (obj.ParentRequestId == null || u.Id != obj.ParentRequestId)
                     && ((obj.StartDate >= u.StartDate && obj.StartDate <= u.EndDate) || (obj.EndDate <= u.EndDate && obj.StartDate >= u.StartDate)))
