@@ -266,5 +266,27 @@ namespace BusinessLogic.Services
                     && ((obj.StartDate >= u.StartDate && obj.StartDate <= u.EndDate) || (obj.EndDate <= u.EndDate && obj.StartDate >= u.StartDate)))
                 ).Any();
         }
+
+        public async Task<IEnumerable<object>> GetStatisticsByVacationDays(int userId)
+        {
+            var currYear = DateTime.Now.Year;
+
+            return (await _repository.FilterAsync(x => x.UserId == userId && x.StartDate.Year <= currYear && x.EndDate.Year >= currYear && x.State == VacationRequestState.Approved))
+                .Select(obj => new { count = DaysInCurrentYears(obj.StartDate, obj.EndDate), type = obj.Type })
+                .GroupBy(x => x.type).Select(result => new { typeId = result.Key, days = result.Sum(x => x.count) });
+        }
+
+        private int DaysInCurrentYears(DateTime start, DateTime end)
+        {
+            var currYear = DateTime.Now.Year;
+
+            if (start.Year < currYear)
+                start = new DateTime(currYear, 01, 01);
+
+            if (end.Year > currYear)
+                end = new DateTime(currYear, 12, 31);
+
+            return end.Subtract(start).Days + 1;
+        }
     }
 }

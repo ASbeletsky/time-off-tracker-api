@@ -39,7 +39,7 @@ namespace TimeOffTracker.WebApi.Controllers
         }
 
         [Authorize(Roles = "Manager, Accountant, Admin")]
-        [HttpGet("{requestId}")]      
+        [HttpGet("/requests/{requestId}")]      
         public async Task<TimeOffRequestApiModel> Get(int requestId)
         {
             return await _service.GetByIdAsync(requestId);
@@ -51,7 +51,12 @@ namespace TimeOffTracker.WebApi.Controllers
             return await _service.GetByIdAsync(int.Parse(this.User.Identity.Name), requestId);
         }
 
-        
+        [HttpGet("/user/statistics")]
+        public async Task<IEnumerable<object>> Get()
+        {
+            return await _service.GetStatisticsByVacationDays(int.Parse(this.User.Identity.Name));
+        }
+
         [HttpPost("/requests")]
         public async Task<IActionResult> Post ([FromBody] TimeOffRequestApiModel model)
         {

@@ -13,7 +13,7 @@ namespace BusinessLogic.Services.Interfaces
         Task<TimeOffRequestApiModel> GetByIdAsync(int userId, int requestId);
         Task UpdateAsync(int userId, TimeOffRequestApiModel newModel);
         Task DeleteAsync(int requestId);
-
         Task RejectedByOwnerAsync(int userId, int requestId);
+        Task<IEnumerable<object>> GetStatisticsByVacationDays(int userId);
     }
 }
