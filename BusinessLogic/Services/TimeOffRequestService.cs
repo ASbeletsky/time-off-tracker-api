@@ -55,8 +55,8 @@ namespace BusinessLogic.Services
 
             Expression<Func<TimeOffRequest, bool>> condition = request =>
                 (request.UserId == userId)
-                && (start == null || request.StartDate.Date == start)
-                && (end == null || request.EndDate.Date == end)
+                && (start == null || request.StartDate.Date >= start)
+                && (end == null || request.EndDate.Date <= end)
                 && (stateId == null || (int)request.State == stateId)
                 && (typeId == null || (int)request.Type == typeId);
 

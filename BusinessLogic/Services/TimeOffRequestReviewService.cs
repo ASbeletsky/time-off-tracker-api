@@ -46,7 +46,7 @@ namespace BusinessLogic.Services
                 await _reviewRepository.DeleteAsync(id);
         }
 
-        public async Task<IReadOnlyCollection<TimeOffRequestReviewApiModel>> GetAllAsync(int? reviewerId = null, int? requestId = null, int? stateId = null, DateTime? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null)
+        public async Task<IEnumerable<TimeOffRequestReviewApiModel>> GetAllAsync(int? reviewerId = null, int? requestId = null, int? stateId = null, DateTime? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null)
         {
             User userName = null;
 
@@ -58,14 +58,16 @@ namespace BusinessLogic.Services
 
             Expression<Func<TimeOffRequestReview, bool>> condition = review =>
                     (reviewerId == null || review.ReviewerId == reviewerId)
-                    && (requestId == null || review.RequestId== requestId)
+                    && (requestId == null || review.RequestId == requestId)
                     && (stateId == null || (int)review.Request.State == stateId)
-                    && (startDate == null || review.Request.StartDate.Date == startDate)
-                    && (endDate == null || review.Request.EndDate.Date == endDate)
+                    && (startDate == null || review.Request.StartDate.Date >= startDate)
+                    && (endDate == null || review.Request.EndDate.Date <= endDate)
                     && (name == null || review.Request.UserId == userName.Id)
                     && (typeId == null || (int)review.Request.Type == typeId);
+                                      
+            var res = _mapper.Map<IReadOnlyCollection<TimeOffRequestReviewApiModel>>(await _reviewRepository.FilterAsync(condition));
 
-            return _mapper.Map<IReadOnlyCollection<TimeOffRequestReviewApiModel>>(await _reviewRepository.FilterAsync(condition));
+            return res.Where(x => x.Request.Reviews.OrderBy(x => x.Id).TakeWhile(x => x.ReviewerId != reviewerId).All(x => x.IsApproved != null));
         }
 
         public async Task<TimeOffRequestReviewApiModel> GetByIdAsync(int reviewId)
@@ -77,10 +79,16 @@ namespace BusinessLogic.Services
         {
             var reviewfromDb = await _reviewRepository.FindAsync(x=>x.Id == reviewId);
 
+            var reviwer = await _userRepository.FindAsync(userId);
+
+            if(reviewfromDb.ReviewerId != userId)
+                throw new ConflictException("The request is not actual!");
+
+            if(!((reviewfromDb.Request.Reviews.OrderBy(x => x.Id)).TakeWhile(x => x.ReviewerId != userId)).All(x=>x.IsApproved!= null))
+                throw new ConflictException("No previous review!");          
+
             if (reviewfromDb.Request.State == VacationRequestState.Rejected)
                 throw new ConflictException("The request has already been rejected!");
-         
-            var reviewer = await _userRepository.FindAsync(userId);
 
             if ((await _requestRepository.FilterAsync(r => r.Id == reviewfromDb.RequestId && r.Reviews
                 .Select(x => x.ReviewerId).Contains(userId)))
