@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BusinessLogic.Exceptions
+﻿namespace BusinessLogic.Exceptions
 {
-    public class ConflictException : Exception
+    public class ConflictException : CustomTimeOffTrackerException
     {
-        public ConflictException(string message) : base(message)
+        public ConflictException(string message) : base(message, 409)
         { }
-
-        public int StatusCode = 409;
     }
 }

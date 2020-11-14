@@ -42,7 +42,7 @@ namespace BusinessLogic.Services
             UserApiModel user = _mapper.Map<UserApiModel>(await _repository.FindAsync(id));
 
             if (user == null)
-                throw new UserNotFoundException($"Can't find user with Id: {id}");
+                throw new UserNotFoundException($"User not found: UserId={id}");
 
             return user;
         }
@@ -69,7 +69,7 @@ namespace BusinessLogic.Services
 
                 if (!result.Succeeded)
                 {
-                    StringBuilder sb = new StringBuilder();
+                    StringBuilder sb = new StringBuilder("User not created: ");
                     foreach (IdentityError err in result.Errors)
                         sb.Append(err.Description).Append(";");
 
@@ -88,11 +88,11 @@ namespace BusinessLogic.Services
             User user = await _userManager.FindByIdAsync(userModel.Id.ToString());
 
             if (user == null)
-                throw new UserNotFoundException($"Can't find user with Id: {userModel.Id}");
+                throw new UserNotFoundException($"User not found: UserId={userModel.Id}");
             if (await _roleManager.FindByNameAsync(userModel.Role) == null)
                 throw new RoleNotFoundException($"Role does not exist: {userModel.Role}");
             if (userModel.Email == null)
-                throw new ConflictException($"Email can't be null");
+                throw new ConflictException($"Email can't be empty");
 
             using (var transactionScope = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled))
             {
@@ -120,12 +120,12 @@ namespace BusinessLogic.Services
         {
             User user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
-                throw new UserNotFoundException($"Can't find user with Id: {id}");
+                throw new UserNotFoundException($"User not found: UserId={id}");
 
             IdentityResult result = await _userManager.DeleteAsync(user);
             if (!result.Succeeded)
             {
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder("User not deleted: ");
                 foreach (IdentityError err in result.Errors)
                 {
                     sb.Append(err.Description).Append(";");

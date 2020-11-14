@@ -1,12 +1,8 @@
-﻿using System;
-
-namespace BusinessLogic.Exceptions
+﻿namespace BusinessLogic.Exceptions
 {
-    public class RequestNotFoundException : Exception
+    public class RequestNotFoundException : CustomTimeOffTrackerException
     {
-        public RequestNotFoundException(string message) : base(message)
+        public RequestNotFoundException(string message) : base(message, 404)
         { }
-
-        public int StatusCode = 400;
     }
 }

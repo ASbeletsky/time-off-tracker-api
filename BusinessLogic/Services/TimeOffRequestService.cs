@@ -79,7 +79,7 @@ namespace BusinessLogic.Services
         {
             var requestFromDb = await _repository.FindAsync(r => r.Id == requestId); //include reviews
             if (requestFromDb == null)
-                throw new RequestNotFoundException($"Can't find request with id {requestId}");
+                throw new RequestNotFoundException($"Request not found: RequestId={requestId}");
             if (newModel.UserId != requestFromDb.UserId)      //only author can change his own request
                 throw new ConflictException("Current user is not the author of the request");
 
@@ -139,7 +139,7 @@ namespace BusinessLogic.Services
             var requestFromDb = await _repository.FindAsync(x => x.Id == requestId);
 
             if (requestFromDb == null)
-                throw new RequestNotFoundException($"Can't find request with id {requestId}");
+                throw new RequestNotFoundException($"Request not found: RequestId={requestId}");
             if (requestFromDb.UserId != userId)
                 throw new ConflictException("Current user is not the author of the request");
             if (requestFromDb.EndDate <= DateTime.Now.Date)

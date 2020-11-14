@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BusinessLogic.Exceptions
+﻿namespace BusinessLogic.Exceptions
 {
-    public class RequiredArgumentNullException:Exception
+    public class RequiredArgumentNullException : CustomTimeOffTrackerException
     {
-        public RequiredArgumentNullException(string message) : base(message)
+        public RequiredArgumentNullException(string message) : base(message, 400)
         { }
-
-        public int StatusCode = 400;
     }
 }

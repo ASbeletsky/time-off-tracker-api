@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace BusinessLogic.Exceptions
+﻿namespace BusinessLogic.Exceptions
 {
-    public class RoleNotFoundException : Exception
+    public class RoleNotFoundException : CustomTimeOffTrackerException
     {
-        public RoleNotFoundException(string message) : base(message)
+        public RoleNotFoundException(string message) : base(message, 400)
         { }
     }
 }

@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace TimeOffTracker.WebApi.Exceptions
+﻿namespace BusinessLogic.Exceptions
 {
-    public class UserNotDeleteException : Exception
+    public class UserNotDeleteException : CustomTimeOffTrackerException
     {
-        public UserNotDeleteException(string message) : base(message)
+        public UserNotDeleteException(string message) : base(message, 400)
         { }
     }
 }
