@@ -205,9 +205,9 @@ namespace BusinessLogic.Services
 
         private async Task<bool> ValidateAccounting(IEnumerable<int> reviewerId)
         {
-            var accountantReview = _mapper.Map<User>(await _userService.GetUser(reviewerId.FirstOrDefault()));
+            var accountantReview = await _userService.GetUser(reviewerId.FirstOrDefault());
 
-            return (accountantReview != null && accountantReview.Role == RoleName.accountant);
+            return (accountantReview.Role == RoleName.accountant);
         }
 
         private bool ValidateManagers(ICollection<int> reviewerIds)
@@ -215,7 +215,7 @@ namespace BusinessLogic.Services
             reviewerIds = reviewerIds.Skip(1).ToList();
             var managerReviews = reviewerIds.Select(rId => _userService.GetUser(rId));
 
-            return managerReviews.All(x => x.Result.Role == RoleName.manager);
+            return managerReviews.All(r => r.Result.Role == RoleName.manager);
         }
 
         private bool IsNoDuplicate(ICollection<int> ids) => (ids != null && ids.Count() == ids.Distinct().Count());
