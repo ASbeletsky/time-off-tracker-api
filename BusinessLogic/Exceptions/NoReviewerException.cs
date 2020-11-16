@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BusinessLogic.Exceptions
+﻿namespace BusinessLogic.Exceptions
 {
-    public class NoReviewerException:Exception
+    public class NoReviewerException : CustomTimeOffTrackerException
     {
-        public NoReviewerException(string message) : base(message)
+        public NoReviewerException(string message) : base(message, 400)
         { }
-        
-        public int StatusCode = 400;
     }
 }

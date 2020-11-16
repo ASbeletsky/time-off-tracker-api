@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BusinessLogic.Exceptions
+﻿namespace BusinessLogic.Exceptions
 {
-    public class StateException:Exception
+    public class StateException : CustomTimeOffTrackerException
     {
-        public StateException(string message) : base(message)
+        public StateException(string message) : base(message, 409)
         { }
-
-        public int StatusCode = 409;
     }
 }

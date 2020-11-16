@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Web.CodeGeneration.EntityFrameworkCore;
-using System.Security.Cryptography.X509Certificates;
 
 namespace TimeOffTracker.WebApi.Filters
 {
@@ -26,24 +24,16 @@ namespace TimeOffTracker.WebApi.Filters
           
             switch (context.Exception)
             {
-                case ConflictException conflictException:
-                    contextResult.StatusCode = conflictException.StatusCode;
-                    break;
-                case StateException stateException:
-                    contextResult.StatusCode = stateException.StatusCode;
-                    break;
-                case NoReviewerException reviewerException:
-                    contextResult.StatusCode = reviewerException.StatusCode;
-                    break;
-                case RequiredArgumentNullException requiredArgumentNullException:
-                    contextResult.StatusCode = requiredArgumentNullException.StatusCode;
+                case CustomTimeOffTrackerException timeOffTrackerException:
+                    contextResult.StatusCode = timeOffTrackerException.StatusCode;
                     break;
                 default:
-                    contextResult.StatusCode = 400;
+                    contextResult.StatusCode = 500;
                     break;
             }
 
-            context.ExceptionHandled = false;            
+            context.Result = contextResult;
+            context.ExceptionHandled = contextResult.StatusCode < 500;            
         }
     }
 }

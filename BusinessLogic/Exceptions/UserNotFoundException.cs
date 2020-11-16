@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace TimeOffTracker.WebApi.Exceptions
+﻿namespace BusinessLogic.Exceptions
 {
-    public class UserNotFoundException : Exception
+    public class UserNotFoundException : CustomTimeOffTrackerException
     {
-        public UserNotFoundException(string message) : base(message)
+        public UserNotFoundException(string message) : base(message, 400)
         { }
     }
 }

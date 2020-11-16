@@ -38,12 +38,12 @@ namespace TimeOffTracker.WebApi.Controllers
             if (ModelState.IsValid)
             {
                 User newUser = await _userService.CreateUser(model);
-                _logger.LogInformation("Account created successfully: id: {UserId}, username: {User}", newUser.UserName, newUser.Id);
+                _logger.LogInformation("Account created successfully( id: {UserId}, username: {User} )", newUser.UserName, newUser.Id);
 
                 return Ok(_mapper.Map<UserApiModel>(newUser));
             }
             else
-                throw new UserCreateException("Invalid user data");
+                throw new UserCreateException("User not created: Invalid user data");
         }
     }
 }

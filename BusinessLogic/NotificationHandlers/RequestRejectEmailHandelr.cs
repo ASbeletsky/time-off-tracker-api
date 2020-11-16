@@ -1,5 +1,6 @@
 ﻿using ApiModels.Models;
 using AutoMapper;
+using BusinessLogic.Exceptions;
 using BusinessLogic.Notifications;
 using BusinessLogic.Services.Interfaces;
 using DataAccess.Repository.Interfaces;
@@ -15,7 +16,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using TimeOffTracker.WebApi.Exceptions;
 
 namespace BusinessLogic.NotificationHandlers
 {
@@ -73,7 +73,7 @@ namespace BusinessLogic.NotificationHandlers
             {
                 var rejectPerson = await _userManager.FindByIdAsync(rejectReview.ReviewerId.ToString());
                 if (rejectPerson == null)
-                    throw new UserNotFoundException($"No user found who canceled the request. UserId: {rejectReview.ReviewerId}");
+                    throw new UserNotFoundException($"No user found who rejected the request. UserId: {rejectReview.ReviewerId}");
 
                 model.RejectedBy = $"{rejectPerson.FirstName} {rejectPerson.LastName}".Trim();
                 model.RejectComment = rejectReview.Comment;
