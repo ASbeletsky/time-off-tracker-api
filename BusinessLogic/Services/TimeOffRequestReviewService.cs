@@ -4,7 +4,6 @@ using BusinessLogic.Exceptions;
 using BusinessLogic.Notifications;
 using BusinessLogic.Services.Interfaces;
 using DataAccess.Repository.Interfaces;
-using DataAccess.Static.Context;
 using Domain.EF_Models;
 using Domain.Enums;
 using MediatR;
@@ -12,8 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BusinessLogic.Services
