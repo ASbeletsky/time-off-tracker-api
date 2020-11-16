@@ -8,13 +8,13 @@ using DataAccess.Static.Context;
 using Domain.EF_Models;
 using Domain.Enums;
 using MediatR;
+using Microsoft.EntityFrameworkCore.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Transactions;
-using TimeOffTracker.WebApi.Exceptions;
 
 namespace BusinessLogic.Services
 {
@@ -35,19 +35,22 @@ namespace BusinessLogic.Services
             _mediator = mediator;
         }
 
-        public async Task AddAsync(TimeOffRequestApiModel obj)
+        public async Task<TimeOffRequestApiModel> AddAsync(TimeOffRequestApiModel obj)
         {
-            FillReviewers(obj);
-
-            if (await CheckNewRequest(obj))
+            if (await IsRequestCorrect(obj))
             {
+                FillReviewers(obj);
                 obj.StateId = (int)VacationRequestState.New;
                 TimeOffRequest request = _mapper.Map<TimeOffRequest>(obj);
                 await _repository.CreateAsync(request);
 
                 var notification = new RequestUpdatedNotification { Request = request };
                 await _mediator.Publish(notification);
+
+                return _mapper.Map<TimeOffRequestApiModel>(request);
             }
+            else
+                return null;
         }
 
         public async Task<IReadOnlyCollection<TimeOffRequestApiModel>> GetAllAsync(int userId, DateTime? start = null, DateTime? end = null, int? stateId = null, int? typeId = null)
@@ -80,22 +83,23 @@ namespace BusinessLogic.Services
             if (newModel.UserId != requestFromDb.UserId)      //only author can change his own request
                 throw new ConflictException("Current user is not the author of the request");
 
-            bool needToNotify = false; 
+
+            bool needToNotify = false;
 
             using (var transactionScope = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled))
             {
                 switch (requestFromDb.State)
                 {
                     case VacationRequestState.New:
-                        FillReviewers(newModel);
-
                         newModel.ParentRequestId = requestFromDb.Id;
-                        if (await CheckNewRequest(newModel))
+                        if (await IsRequestCorrect(newModel))
                         {
+                            newModel.ParentRequestId = null;
                             newModel.StateId = (int)VacationRequestState.New;
+                            FillReviewers(newModel);
                             _mapper.Map(newModel, requestFromDb);
+                            needToNotify = true;
                         }
-                        needToNotify = true;
                         break;
 
                     case VacationRequestState.InProgress:
@@ -106,15 +110,18 @@ namespace BusinessLogic.Services
                         await Duplicate(requestFromDb, newModel);
                         break;
 
-                    case VacationRequestState.Rejected: break;
-                        throw new StateException("State does not allow the request");
+                    case VacationRequestState.Rejected:
+                        throw new StateException("It is forbidden to change the rejected request");
+
+                    default:
+                        throw new StateException("Request status is not allowed or does not exist");
                 }
 
                 await _repository.UpdateAsync(requestFromDb);
                 transactionScope.Complete();
             }
 
-            if (needToNotify) //incorrect information gets into the letter inside the TransactionScope
+            if (needToNotify)
             {
                 var notification = new RequestUpdatedNotification { Request = requestFromDb };
                 await _mediator.Publish(notification);
@@ -148,8 +155,10 @@ namespace BusinessLogic.Services
 
         private async Task<bool> ChangeAsync(TimeOffRequest sourceRequest, TimeOffRequestApiModel changedModel)
         {
+            await IsReviewsCorrect(changedModel);
+
             var approvedReviews = sourceRequest.Reviews.TakeWhile(r => r.IsApproved == true);
-            
+
             if (!Enumerable.SequenceEqual(approvedReviews.Select(r => r.ReviewerId), changedModel.ReviewsIds.Take(approvedReviews.Count())))
                 throw new ConflictException("Approved reviews can't be changed");   //approved reviews mustn't change
 
@@ -170,87 +179,84 @@ namespace BusinessLogic.Services
                 sourceRequest.Reviews.Remove(review);
 
             foreach (int reviewerId in newReviewers)                    //add new reviews
-            {
-                if (await CanBeReviewer(reviewerId))
-                    sourceRequest.Reviews.Add(new TimeOffRequestReview() { ReviewerId = reviewerId, RequestId = sourceRequest.Id });
-                else
-                    throw new ConflictException($"User with id {reviewerId} can't be a reviewer");
-            }
+                sourceRequest.Reviews.Add(new TimeOffRequestReview() { ReviewerId = reviewerId, RequestId = sourceRequest.Id });
 
             return isActiveReviewReplace;
         }
 
-        private async Task<bool> CanBeReviewer(int userId)
-        {
-            var curUser = await _userService.GetUser(userId);
-            if (curUser == null)
-                throw new UserNotFoundException("Can't find user with Id");
-
-            return (curUser.Role == RoleName.manager || curUser.Role == RoleName.accountant);
-        }
-
         private async Task Duplicate(TimeOffRequest parentRequest, TimeOffRequestApiModel duplicateModel)
         {
-            if (parentRequest.EndDate <= DateTime.Now.Date)                         //documentation condition
+            if (parentRequest.EndDate <= DateTime.Now.Date)                     //documentation condition
                 throw new ConflictException("End date of the request must be later than the current date");
 
-            var safeModel = _mapper.Map<TimeOffRequestApiModel>(parentRequest);     //Can change only comment, dates and reviewer
-
+            var safeModel = _mapper.Map<TimeOffRequestApiModel>(parentRequest);
+            //Can change only comment, dates and reviewer
             safeModel.EndDate = duplicateModel.EndDate;
             safeModel.StartDate = duplicateModel.StartDate;
             safeModel.Comment = duplicateModel.Comment;
             safeModel.ReviewsIds = duplicateModel.ReviewsIds;
-            safeModel.ParentRequestId = duplicateModel.Id;                      //prevent date intersection
+            safeModel.ParentRequestId = duplicateModel.Id;
 
-            await AddAsync(safeModel);                                          //All standart checks and create
+            await AddAsync(safeModel);                                          //All standard checks and create
 
-            parentRequest.State = VacationRequestState.Rejected;                //If all right - change parent request stage
+            parentRequest.State = VacationRequestState.Rejected;
             parentRequest.ModifiedByUserId = parentRequest.UserId;
         }
 
-        private async Task<bool> ValidateAccountingReviewer(TimeOffRequestReview review)
+        private async Task<bool> ValidateAccounting(IEnumerable<int> reviewerId)
         {
-            var accountantReview = _mapper.Map<User>(await _userService.GetUser(review.ReviewerId));
+            var accountantReview = await _userService.GetUser(reviewerId.FirstOrDefault());
 
-            return (accountantReview != null && accountantReview.Role == RoleName.accountant);
+            return (accountantReview.Role == RoleName.accountant);
         }
 
-        private bool ValidateManagerReviewers(ICollection<TimeOffRequestReviewApiModel> reviews, int requestTypeId)
+        private bool ValidateManagers(ICollection<int> reviewerIds)
         {
-            var managerReviews = reviews.Select(x => _userService.GetUser(x.ReviewerId));
+            reviewerIds = reviewerIds.Skip(1).ToList();
+            var managerReviews = reviewerIds.Select(rId => _userService.GetUser(rId));
 
-            return managerReviews.All(x => x.Result.Role == RoleName.manager);
+            return managerReviews.All(r => r.Result.Role == RoleName.manager);
         }
 
-        private async Task<bool> CheckNewRequest(TimeOffRequestApiModel obj)
-        {
-            if (await IntersectionDates(obj))
-                throw new ConflictException("Incorrect dates");
+        private bool IsNoDuplicate(ICollection<int> ids) => (ids != null && ids.Count() == ids.Distinct().Count());
 
-            if (obj.TypeId == (int)TimeOffType.PaidLeave || obj.TypeId == (int)TimeOffType.AdministrativeUnpaidLeave || obj.TypeId == (int)TimeOffType.SickLeaveWithDocuments || obj.TypeId == (int)TimeOffType.SickLeaveWithoutDocuments)
-                if (String.IsNullOrEmpty(obj.Comment))
+        private async Task<bool> IsRequestCorrect(TimeOffRequestApiModel request)
+        {
+            if (request.TypeId == (int)TimeOffType.PaidLeave || request.TypeId == (int)TimeOffType.AdministrativeUnpaidLeave || request.TypeId == (int)TimeOffType.SickLeaveWithDocuments || request.TypeId == (int)TimeOffType.SickLeaveWithoutDocuments)
+                if (String.IsNullOrEmpty(request.Comment))
                     throw new RequiredArgumentNullException("Comment field is empty");
 
-            if (!await ValidateAccountingReviewer(_mapper.Map<TimeOffRequestReview>(obj.Reviews.FirstOrDefault())))
-                throw new NoReviewerException("Not defined accounting");
+            if (await IntersectionDates(request))
+                throw new ConflictException("Dates intersection");
 
-            if (!ValidateManagerReviewers(obj.Reviews.Skip(1).ToList(), obj.TypeId))
-                throw new NoReviewerException("Not all managers defined");
+            await IsReviewsCorrect(request);
 
             return true;
         }
 
-        private void FillReviewers(TimeOffRequestApiModel obj)
+        private async Task IsReviewsCorrect(TimeOffRequestApiModel request)
         {
-            foreach (var item in obj.ReviewsIds)
+            if (!await ValidateAccounting(request.ReviewsIds))
+                throw new NoReviewerException("Not defined accounting");
+
+            if (!ValidateManagers(request.ReviewsIds))
+                throw new NoReviewerException("Not all managers defined");
+
+            if (!IsNoDuplicate(request.ReviewsIds))
+                throw new ConflictException("Any manager cannot be specified more than once");
+        }
+
+        private void FillReviewers(TimeOffRequestApiModel request)
+        {
+            foreach (var item in request.ReviewsIds)
             {
                 var rewiew = new TimeOffRequestReviewApiModel()
                 {
                     ReviewerId = item,
-                    RequestId = obj.Id
+                    RequestId = request.Id
                 };
 
-                obj.Reviews.Add(rewiew);
+                request.Reviews.Add(rewiew);
             }
         }
 
@@ -259,7 +265,7 @@ namespace BusinessLogic.Services
             if (obj.EndDate < obj.StartDate)
                 throw new ConflictException("End date can't be earlier than start date");
 
-            return obj.IsDateIntersectionAllowed || 
+            return !obj.IsDateIntersectionAllowed &&
                 (await _repository.FilterAsync(u => u.UserId == obj.UserId
                     && u.State != VacationRequestState.Rejected
                     && (obj.ParentRequestId == null || u.Id != obj.ParentRequestId)

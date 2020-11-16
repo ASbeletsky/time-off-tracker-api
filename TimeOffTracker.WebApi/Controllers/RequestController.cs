@@ -59,9 +59,9 @@ namespace TimeOffTracker.WebApi.Controllers
                 return BadRequest(ModelState.Values.SelectMany(v => v.Errors));
                        
                 model.UserId = int.Parse(this.User.Identity.Name);
-                await _service.AddAsync(model);
+                TimeOffRequestApiModel newRequest =  await _service.AddAsync(model);
 
-            return Accepted();
+            return Ok(newRequest);
         }
 
         [HttpPut("/requests/{requestId}")]
