@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ApiModels.Models;
 using BusinessLogic.Services.Interfaces;
+using DataAccess.Static.Context;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -27,7 +28,7 @@ namespace TimeOffTracker.WebApi.Controllers
             _logger = logger;
         }
 
-        [Authorize(Roles = "Manager, Accountant")]
+        [Authorize(Roles = RoleName.manager + ", " + RoleName.accountant)]
         [HttpGet("/user/reviews")]
         public async Task<IEnumerable<TimeOffRequestReviewApiModel>> Get(int? requestId = null, int? stateId = null, DateTime ? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null)
         {
@@ -36,14 +37,14 @@ namespace TimeOffTracker.WebApi.Controllers
             return await _service.GetAllAsync(reviewerId, requestId, stateId, startDate, endDate, name, typeId); ;
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = RoleName.admin)]
         [HttpGet("/reviews")]
         public async Task<IEnumerable<TimeOffRequestReviewApiModel>> Get(int? reviewerId = null, int? requestId = null, int? stateId = null, DateTime? startDate = null, DateTime? endDate = null, string name = null, int? typeId = null)
         {
             return await _service.GetAllAsync(reviewerId, requestId, stateId, startDate, endDate, name, typeId); ;
         }
 
-        [Authorize(Roles = "Manager, Accountant")]
+        [Authorize(Roles = RoleName.manager + ", " + RoleName.accountant)]
         [HttpPut("/user/reviews/{id}")]
         public async Task Put(int id, [FromBody] TimeOffRequestReviewApiModel model)
         {

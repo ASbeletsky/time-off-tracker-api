@@ -19,6 +19,7 @@ namespace DataAccess.Infrastructure
             services.AddScoped<IRepository<User, int>, UserRepository>();
             services.AddScoped<IRepository<TimeOffRequest, int>, TimeOffRequestRepository>();
             services.AddScoped<IRepository<TimeOffRequestReview, int>, TimeOffRequestReviewRepository>();
+            services.AddScoped<IRepository<UsedDaysStatistic, int>, UsedDaysStatisticRepository>();
 
             services.AddDbContext<TimeOffTrackerContext>(option =>
                 option.UseSqlServer(configuration.GetConnectionString("defaultConnection")));

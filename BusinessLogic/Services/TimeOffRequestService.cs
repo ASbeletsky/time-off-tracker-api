@@ -151,6 +151,9 @@ namespace BusinessLogic.Services
 
             var notification = new RequestRejectedNotification { Request = requestFromDb };
             await _mediator.Publish(notification);
+
+            var statistic_notification = new StatisticUpdateHandler { Request = requestFromDb };
+            await _mediator.Publish(statistic_notification);
         }
 
         private async Task<bool> ChangeAsync(TimeOffRequest sourceRequest, TimeOffRequestApiModel changedModel)
