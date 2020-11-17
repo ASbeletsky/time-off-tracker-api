@@ -29,7 +29,6 @@ namespace TimeOffTracker.WebApi.Controllers
         public async Task<IReadOnlyCollection<TimeOffRequestApiModel>> Get(int userId, DateTime? startDate = null, DateTime? endDate = null, int? stateId = null, int? typeId = null)
         {
             return await _service.GetAllAsync(userId, startDate, endDate, stateId, typeId);
-
         }
 
         [HttpGet("/user/requests")]
@@ -58,8 +57,9 @@ namespace TimeOffTracker.WebApi.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState.Values.SelectMany(v => v.Errors));
                        
-                model.UserId = int.Parse(this.User.Identity.Name);
-                TimeOffRequestApiModel newRequest =  await _service.AddAsync(model);
+            model.UserId = int.Parse(this.User.Identity.Name);
+            TimeOffRequestApiModel newRequest =  await _service.AddAsync(model);
+            _logger.LogInformation($"Request created successfully(id: {newRequest.Id}, author: {model.UserId})");
 
             return Ok(newRequest);
         }
@@ -68,6 +68,7 @@ namespace TimeOffTracker.WebApi.Controllers
         public async Task Put(int requestId, [FromBody] TimeOffRequestApiModel newModel)   
         {
             newModel.UserId = int.Parse(this.User.Identity.Name);
+            _logger.LogInformation($"Request updated successfully(id: {requestId})");
             await _service.UpdateAsync(requestId, newModel);
         }
 
@@ -76,12 +77,15 @@ namespace TimeOffTracker.WebApi.Controllers
         public async Task Delete(int requestId)
         {
             await _service.DeleteAsync(requestId);
+            _logger.LogInformation($"Request deleted successfully(id: {requestId})");
         }
 
         [HttpDelete("/user/requests/{requestId}")]
         public async Task RejectByOwner(int requestId)
         {
-            await _service.RejectedByOwnerAsync(int.Parse(this.User.Identity.Name), requestId);
+            int userId = int.Parse(this.User.Identity.Name);
+            await _service.RejectedByOwnerAsync(userId, requestId);
+            _logger.LogInformation($"Request rejected by author (id: {requestId}, authorId: {userId})");
         }
     }
 }

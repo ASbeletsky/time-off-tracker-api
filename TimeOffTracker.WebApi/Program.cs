@@ -25,7 +25,7 @@ namespace TimeOffTracker.WebApi
 
             try
             {
-                Log.Information("Starting up");
+                Log.Information("Application starting up");
                 CreateHostBuilder(args).Build().Run();
             }
             catch (Exception ex)
@@ -34,6 +34,7 @@ namespace TimeOffTracker.WebApi
             }
             finally
             {
+                Log.Information("Application shut down");
                 Log.CloseAndFlush();
             }
         }

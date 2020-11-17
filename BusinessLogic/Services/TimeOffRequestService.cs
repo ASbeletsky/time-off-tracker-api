@@ -81,7 +81,7 @@ namespace BusinessLogic.Services
             if (requestFromDb == null)
                 throw new RequestNotFoundException($"Request not found: RequestId={requestId}");
             if (newModel.UserId != requestFromDb.UserId)      //only author can change his own request
-                throw new ConflictException("Current user is not the author of the request");
+                throw new ConflictException($"Current user is not the author of the request (userId: {newModel.UserId}, requestId: {requestId})");
 
 
             bool needToNotify = false;
@@ -141,7 +141,7 @@ namespace BusinessLogic.Services
             if (requestFromDb == null)
                 throw new RequestNotFoundException($"Request not found: RequestId={requestId}");
             if (requestFromDb.UserId != userId)
-                throw new ConflictException("Current user is not the author of the request");
+                throw new ConflictException($"Current user is not the author of the request (userId: {userId}, requestId: {requestId})");
             if (requestFromDb.EndDate <= DateTime.Now.Date)
                 throw new ConflictException("End date of the request must be later than the current date");
 
