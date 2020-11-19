@@ -142,18 +142,26 @@ namespace BusinessLogic.Services
                 throw new RequestNotFoundException($"Request not found: RequestId={requestId}");
             if (requestFromDb.UserId != userId)
                 throw new ConflictException($"Current user is not the author of the request (userId: {userId}, requestId: {requestId})");
-            if (requestFromDb.EndDate <= DateTime.Now.Date)
-                throw new ConflictException("End date of the request must be later than the current date");
 
-            requestFromDb.State = VacationRequestState.Rejected;
-            requestFromDb.ModifiedByUserId = requestFromDb.UserId;
-            await _repository.UpdateAsync(requestFromDb);
+            switch (requestFromDb.State) { 
+                case VacationRequestState.New: 
+                    await _repository.DeleteAsync(requestId); 
+                    break;
 
-            var notification = new RequestRejectedNotification { Request = requestFromDb };
-            await _mediator.Publish(notification);
+                case VacationRequestState.InProgress:
+                case VacationRequestState.Approved:
+                    if (requestFromDb.EndDate <= DateTime.Now.Date)
+                        throw new ConflictException("End date of the request must be later than the current date");
 
-            var statistic_notification = new StatisticUpdateHandler { Request = requestFromDb };
-            await _mediator.Publish(statistic_notification);
+                    requestFromDb.State = VacationRequestState.Rejected;
+                    requestFromDb.ModifiedByUserId = requestFromDb.UserId;
+                    await _repository.UpdateAsync(requestFromDb);
+
+                    await _mediator.Publish(new RequestRejectedNotification { Request = requestFromDb });
+                    await _mediator.Publish(new StatisticUpdateHandler { Request = requestFromDb });
+                    break;
+            } 
+           
         }
 
         private async Task<bool> ChangeAsync(TimeOffRequest sourceRequest, TimeOffRequestApiModel changedModel)

@@ -73,7 +73,7 @@ namespace TimeOffTracker.WebApi.Controllers
             await _service.UpdateAsync(requestId, newModel);
         }
 
-        [Authorize(Roles = "Manager, Accountant, Admin")]
+        [Authorize(Roles = RoleName.manager + "," + RoleName.accountant + "," + RoleName.admin)]
         [HttpDelete("/requests/{requestId}")]
         public async Task Delete(int requestId)
         {
