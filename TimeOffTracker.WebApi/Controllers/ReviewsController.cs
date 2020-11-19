@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using ApiModels.Models;
 using BusinessLogic.Services.Interfaces;
@@ -48,6 +47,7 @@ namespace TimeOffTracker.WebApi.Controllers
         public async Task Put(int id, [FromBody] TimeOffRequestReviewApiModel model)
         {
             var reviewerId = int.Parse(this.User.Identity.Name);
+            _logger.LogInformation($"Review updated successfully (id: {id}, state: {model.IsApproved})");
 
             await _service.UpdateAsync(id, model, reviewerId);
         }
@@ -57,6 +57,7 @@ namespace TimeOffTracker.WebApi.Controllers
         public async Task Delete(int id)
         {
             await _service.DeleteAsync(id);
+            _logger.LogInformation($"Review deleted successfully (id: {id})");
         }
     }
 }
