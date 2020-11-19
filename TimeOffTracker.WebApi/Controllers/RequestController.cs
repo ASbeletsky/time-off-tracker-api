@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ApiModels.Models;
 using BusinessLogic.Services.Interfaces;
+using DataAccess.Static.Context;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -24,7 +25,7 @@ namespace TimeOffTracker.WebApi.Controllers
             _logger = logger;
         }
 
-        [Authorize(Roles = "Manager, Accountant, Admin")]
+        [Authorize(Roles = RoleName.manager + ", " + RoleName.accountant + ", " + RoleName.admin)]
         [HttpGet("/requests")]
         public async Task<IReadOnlyCollection<TimeOffRequestApiModel>> Get(int userId, DateTime? startDate = null, DateTime? endDate = null, int? stateId = null, int? typeId = null)
         {
@@ -37,7 +38,7 @@ namespace TimeOffTracker.WebApi.Controllers
             return await _service.GetAllAsync(int.Parse(this.User.Identity.Name), startDate, endDate, stateId, typeId);
         }
 
-        [Authorize(Roles = "Manager, Accountant, Admin")]
+        [Authorize(Roles = RoleName.manager + ", " + RoleName.accountant + ", " + RoleName.admin)]
         [HttpGet("{requestId}")]      
         public async Task<TimeOffRequestApiModel> Get(int requestId)
         {

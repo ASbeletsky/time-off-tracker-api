@@ -36,6 +36,7 @@ namespace BusinessLogic.Infrastructure
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITimeOffRequestService, TimeOffRequestService>();
             services.AddScoped<ITimeOffRequestReviewService, TimeOffRequestReviewService>();
+            services.AddScoped<IStatisticService, StatisticService>();
 
             services.Configure<SmtpSettings>(opt => configuration.GetSection("SmtpSettings").Bind(opt));
             services.AddSingleton<IEmailService, EmailService>();

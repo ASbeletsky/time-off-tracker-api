@@ -33,12 +33,16 @@ namespace DataAccess.Context
                 .WithMany(usr => usr.Requests)
                 .HasForeignKey(req => req.UserId);
 
-            
+            modelBuilder.Entity<UsedDaysStatistic>()
+                .HasOne(x => x.User)
+                .WithMany()
+                .OnDelete(DeleteBehavior.NoAction);
 
             base.OnModelCreating(modelBuilder);
         }
 
         public DbSet<TimeOffRequest> TimeOffRequests { get; set; }
         public DbSet<TimeOffRequestReview> TimeOffRequestReviews { get; set; }
+        public DbSet<UsedDaysStatistic> Statistics { get; set; }
     }
 }
