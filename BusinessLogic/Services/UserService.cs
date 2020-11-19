@@ -8,6 +8,7 @@ using DataAccess.Static.Context;
 using Domain.EF_Models;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -121,16 +122,22 @@ namespace BusinessLogic.Services
             User user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
                 throw new UserNotFoundException($"User not found: UserId={id}");
-
-            IdentityResult result = await _userManager.DeleteAsync(user);
-            if (!result.Succeeded)
+            try
             {
-                StringBuilder sb = new StringBuilder("User not deleted: ");
-                foreach (IdentityError err in result.Errors)
+                IdentityResult result = await _userManager.DeleteAsync(user);
+                if (!result.Succeeded)
                 {
-                    sb.Append(err.Description).Append(";");
+                    StringBuilder sb = new StringBuilder("User not deleted: ");
+                    foreach (IdentityError err in result.Errors)
+                    {
+                        sb.Append(err.Description).Append(";");
+                    }
+                    throw new UserNotDeleteException(sb.ToString());
                 }
-                throw new UserNotDeleteException(sb.ToString());
+            }
+            catch (DbUpdateException)
+            {
+                throw new UserNotDeleteException("User can't be deleted while he has reviews");
             }
         }
     }

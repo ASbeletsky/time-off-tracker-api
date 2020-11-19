@@ -32,7 +32,7 @@ namespace TimeOffTracker.WebApi.Controllers
             return users;
         }
 
-        [HttpGet("{userid:int}")]
+        [HttpGet("{userId:int}")]
         public async Task<IActionResult> GetById(int userId)
         {
             var user = await _userService.GetUser(userId);
@@ -50,7 +50,7 @@ namespace TimeOffTracker.WebApi.Controllers
             return Ok();
         }
 
-        [HttpDelete("{userid:int}")]
+        [HttpDelete("{userId:int}")]
         [Authorize(Roles = RoleName.admin)]
         public async Task<IActionResult> DeleteUser(int userId)
         {
