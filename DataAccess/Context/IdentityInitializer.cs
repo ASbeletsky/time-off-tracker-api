@@ -21,19 +21,19 @@ namespace DataAccess.Context
         }
         public async Task SeedAsync()
         {
-            await CreateDefaultAccount("accounting@mail.ru", "accounting89M#", "Accounting", RoleName.accountant);
-            await CreateDefaultAccount("mainadmin@mail.ru", "mainadmin89M#", "Admin", RoleName.admin);
+            await CreateDefaultAccount("Accounting", "AccTOT2020@gmail.com", "Accounting@1", "Accounting", RoleName.accountant);
+            await CreateDefaultAccount("Admin", "OdminTOT2020@gmail.com", "Admin@1", "Administrator", RoleName.admin);
            
             await _roleManager.CreateAsync(new IdentityRole<int>(RoleName.manager));
             await _roleManager.CreateAsync(new IdentityRole<int>(RoleName.employee));
         }
 
-        private async Task CreateDefaultAccount(string login, string password, string name, string role) 
+        private async Task CreateDefaultAccount(string login, string email, string password, string name, string role) 
         {
 
-            if ((await _userManager.FindByEmailAsync(login)) == null)
+            if ((await _userManager.FindByNameAsync(login)) == null)
             {
-                var user = new User() { UserName = login, Email = login, FirstName = name, LastName = "" };
+                var user = new User() { UserName = login, Email = email, FirstName = name, LastName = "" };
                 var saveuser = await _userManager.CreateAsync(user, password);
 
                 if (saveuser.Succeeded)
