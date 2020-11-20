@@ -14,21 +14,20 @@ namespace TimeOffTracker.WebApi.Controllers
     [Route("[controller]")]
     [ApiController]
     [Authorize]
-    public class StaticticsController : BaseController
+    public class StatisticsController : BaseController
     {
         private IStatisticService _service;
 
-        public StaticticsController(IStatisticService service)
+        public StatisticsController(IStatisticService service)
         {
             _service = service;
         }
 
-        [Authorize(Roles = RoleName.employee)]
+        [Authorize(Roles = RoleName.employee + ", " + RoleName.manager)]
         [HttpGet]
         public async Task<IEnumerable<UsedDaysStatisticApiModel>> Get()
         {
             return await _service.GetStatisticByUserAsync(int.Parse(this.User.Identity.Name));
-
         }
     }
 }
