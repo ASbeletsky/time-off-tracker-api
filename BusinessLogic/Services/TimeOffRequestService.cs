@@ -206,6 +206,7 @@ namespace BusinessLogic.Services
             safeModel.StartDate = duplicateModel.StartDate;
             safeModel.Comment = duplicateModel.Comment;
             safeModel.ReviewsIds = duplicateModel.ReviewsIds;
+            safeModel.Reviews.Clear();
             safeModel.ParentRequestId = duplicateModel.Id;
 
             await AddAsync(safeModel);                                          //All standard checks and create
