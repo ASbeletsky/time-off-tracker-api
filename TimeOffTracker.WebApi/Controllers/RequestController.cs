@@ -53,6 +53,7 @@ namespace TimeOffTracker.WebApi.Controllers
 
         
         [HttpPost("/requests")]
+        [Authorize(Roles = RoleName.manager + ", " + RoleName.employee)]
         public async Task<IActionResult> Post ([FromBody] TimeOffRequestApiModel model)
         {
             if (!ModelState.IsValid)
