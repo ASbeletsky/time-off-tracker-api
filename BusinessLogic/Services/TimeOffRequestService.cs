@@ -212,6 +212,8 @@ namespace BusinessLogic.Services
 
             parentRequest.State = VacationRequestState.Rejected;
             parentRequest.ModifiedByUserId = parentRequest.UserId;
+
+            await _mediator.Publish(new StatisticUpdateHandler { Request = parentRequest });
         }
 
         private async Task<bool> ValidateAccounting(IEnumerable<int> reviewerId)
