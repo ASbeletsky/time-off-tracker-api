@@ -225,9 +225,9 @@ namespace BusinessLogic.Services
         private bool ValidateManagers(ICollection<int> reviewerIds)
         {
             reviewerIds = reviewerIds.Skip(1).ToList();
-            var managerReviews = reviewerIds.Select(rId => _userService.GetUser(rId));
+            var managerReviews = reviewerIds.Select(rId => _userService.GetUser(rId).Result).ToList();
 
-            return managerReviews.All(r => r.Result.Role == RoleName.manager);
+            return managerReviews.Any() && managerReviews.All(r => r.Role == RoleName.manager);
         }
 
         private bool IsNoDuplicate(ICollection<int> ids) => (ids != null && ids.Count() == ids.Distinct().Count());
@@ -238,10 +238,10 @@ namespace BusinessLogic.Services
                 if (String.IsNullOrEmpty(request.Comment))
                     throw new RequiredArgumentNullException("Comment field is empty");
 
+            await IsReviewsCorrect(request);
+
             if (await IntersectionDates(request))
                 throw new ConflictException("Dates intersection");
-
-            await IsReviewsCorrect(request);
 
             return true;
         }
@@ -251,7 +251,12 @@ namespace BusinessLogic.Services
             if (!await ValidateAccounting(request.ReviewsIds))
                 throw new NoReviewerException("Not defined accounting");
 
-            if (!ValidateManagers(request.ReviewsIds))
+            if (request.TypeId == (int)TimeOffType.AdministrativeUnpaidLeave || request.TypeId == (int)TimeOffType.StudyLeave || request.TypeId == (int)TimeOffType.PaidLeave)
+            {
+                if (!ValidateManagers(request.ReviewsIds))
+                    throw new NoReviewerException("Not all managers defined");
+            }
+            else if(request.ReviewsIds.Count() > 1)
                 throw new NoReviewerException("Not all managers defined");
 
             if (!IsNoDuplicate(request.ReviewsIds))
