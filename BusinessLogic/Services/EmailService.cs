@@ -1,6 +1,7 @@
 ﻿using BusinessLogic.Services.Interfaces;
 using BusinessLogic.Settings;
 using MailKit.Net.Smtp;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using MimeKit.Text;
@@ -12,10 +13,12 @@ namespace BusinessLogic.Services
     class EmailService : IEmailService
     {
         private readonly SmtpSettings _smtpSettings;
+        private readonly ILogger<EmailService> _logger;
 
-        public EmailService(IOptions<SmtpSettings> smtpSettings)
+        public EmailService(IOptions<SmtpSettings> smtpSettings, ILogger<EmailService> logger)
         {
             _smtpSettings = smtpSettings.Value;
+            _logger = logger;
         }
 
         public async Task SendEmailAsync(string email, string subject, string body)
@@ -41,7 +44,7 @@ namespace BusinessLogic.Services
             }
             catch (Exception e)
             {
-                throw new InvalidOperationException(e.Message);
+                _logger.LogError(e, "Error in method: SendEmailAsync");
             }
         }
     }
