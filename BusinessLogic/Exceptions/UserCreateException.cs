@@ -1,10 +1,10 @@
-﻿using System;
+﻿using BusinessLogic.Exceptions;
 
 namespace TimeOffTracker.WebApi.Exceptions
 {
-    public class UserCreateException : Exception
+    public class UserCreateException : CustomTimeOffTrackerException
     {
-        public UserCreateException(string message) : base(message)
+        public UserCreateException(string message) : base(message, 400)
         { }
     }
 }
