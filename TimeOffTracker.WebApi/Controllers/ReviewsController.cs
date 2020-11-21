@@ -8,14 +8,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace TimeOffTracker.WebApi.Controllers
 {
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class ReviewsController : ControllerBase
+    public class ReviewsController : BaseController
     {
 
         private ITimeOffRequestReviewService _service;
@@ -48,9 +46,9 @@ namespace TimeOffTracker.WebApi.Controllers
         public async Task Put(int id, [FromBody] TimeOffRequestReviewApiModel model)
         {
             var reviewerId = int.Parse(this.User.Identity.Name);
-            _logger.LogInformation($"Review updated successfully (id: {id}, state: {model.IsApproved})");
 
             await _service.UpdateAsync(id, model, reviewerId);
+            _logger.LogInformation($"Review updated successfully (id: {id}, state: {model.IsApproved})");
         }
 
 
