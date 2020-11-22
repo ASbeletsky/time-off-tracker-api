@@ -61,7 +61,8 @@ namespace BusinessLogic.Services
                     && (startDate == null || review.Request.StartDate.Date >= startDate)
                     && (endDate == null || review.Request.EndDate.Date <= endDate)
                     && (name == null || review.Request.UserId == userName.Id)
-                    && (typeId == null || (int)review.Request.Type == typeId);
+                    && (typeId == null || (int)review.Request.Type == typeId)
+                    && !(review.Request.State == VacationRequestState.Rejected && review.IsApproved == null);
                                       
             var res = _mapper.Map<IReadOnlyCollection<TimeOffRequestReviewApiModel>>(await _reviewRepository.FilterAsync(condition));
 
