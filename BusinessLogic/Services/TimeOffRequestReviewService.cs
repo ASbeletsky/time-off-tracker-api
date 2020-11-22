@@ -81,7 +81,7 @@ namespace BusinessLogic.Services
             {
                 var reviwer = await _userRepository.FindAsync(userId);
 
-                if (reviewfromDb.ReviewerId != userId || reviwer.Role!=RoleName.manager)
+                if (reviewfromDb.ReviewerId != userId || (reviwer.Role!=RoleName.accountant && reviwer.Role != RoleName.manager))
                     throw new ConflictException("The request is not actual!");
 
                 if (!((reviewfromDb.Request.Reviews.OrderBy(x => x.Id)).TakeWhile(x => x.ReviewerId != userId)).All(x => x.IsApproved != null))
