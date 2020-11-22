@@ -21,15 +21,13 @@ namespace BusinessLogic.Services
     public class TimeOffRequestService : ITimeOffRequestService
     {
         IRepository<TimeOffRequest, int> _repository;
-        IRepository<TimeOffRequestReview, int> _reviewRepository;
         IMapper _mapper;
         IUserService _userService;
         IMediator _mediator;
 
-        public TimeOffRequestService(IRepository<TimeOffRequest, int> repository, IRepository<TimeOffRequestReview, int> reviewRepository, IMapper mapper, IUserService userService, IMediator mediator)
+        public TimeOffRequestService(IRepository<TimeOffRequest, int> repository, IMapper mapper, IUserService userService, IMediator mediator)
         {
             _repository = repository;
-            _reviewRepository = reviewRepository;
             _mapper = mapper;
             _userService = userService;
             _mediator = mediator;
