@@ -1,10 +1,12 @@
 ﻿using ApiModels.Models;
 using AutoMapper;
+using BusinessLogic.Exceptions;
 using BusinessLogic.Services;
 using BusinessLogic.Services.Interfaces;
 using DataAccess.Repository.Interfaces;
 using DataAccess.Static.Context;
 using Domain.EF_Models;
+using Domain.Enums;
 using MediatR;
 using Moq;
 using System;
@@ -66,5 +68,30 @@ namespace TimeOffRequestServiceTests
             Assert.True(Enumerable.SequenceEqual(srcReq.Reviews.Select(r => r.ReviewerId), expReq.Reviews.Select(r => r.ReviewerId)));
         }
 
+        [Fact]
+        public void IfRequestStateIsRejected_ThrowStateExceptionTest()
+        {
+            var request = new TimeOffRequest { Id = 1, UserId = 5, State = VacationRequestState.Rejected };
+            var model = new TimeOffRequestApiModel { Id = 1, UserId = 5 };
+
+            _mockRepo.Setup(r => r.FindAsync(It.IsAny<Expression<Func<TimeOffRequest, bool>>>())).ReturnsAsync(request);
+            var service = new TimeOffRequestService(_mockRepo.Object, _mapper, _mockUserService.Object, _mockMediator.Object);
+
+            var exception = Assert.ThrowsAsync<StateException>(() => service.UpdateAsync(request.Id, model)).Result;
+            Assert.Equal("It is forbidden to change the rejected request", exception.Message);
+        }
+
+        [Fact]
+        public void IfRequestStateIsInvalid_ThrowStateExceptionTest()
+        {
+            var request = new TimeOffRequest { Id = 1, UserId = 5, State = (VacationRequestState) 9999 };
+            var model = new TimeOffRequestApiModel { Id = 1, UserId = 5 };
+
+            _mockRepo.Setup(r => r.FindAsync(It.IsAny<Expression<Func<TimeOffRequest, bool>>>())).ReturnsAsync(request);
+            var service = new TimeOffRequestService(_mockRepo.Object, _mapper, _mockUserService.Object, _mockMediator.Object);
+
+            var exception = Assert.ThrowsAsync<StateException>(() => service.UpdateAsync(request.Id, model)).Result;
+            Assert.Equal("Request status is not allowed or does not exist", exception.Message);
+        }
     }
 }
