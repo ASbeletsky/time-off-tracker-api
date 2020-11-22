@@ -4,6 +4,7 @@ using BusinessLogic.Exceptions;
 using BusinessLogic.Notifications;
 using BusinessLogic.Services.Interfaces;
 using DataAccess.Repository.Interfaces;
+using DataAccess.Static.Context;
 using Domain.EF_Models;
 using Domain.Enums;
 using MediatR;
@@ -76,33 +77,38 @@ namespace BusinessLogic.Services
         {
             var reviewfromDb = await _reviewRepository.FindAsync(x=>x.Id == reviewId);
 
-            var reviwer = await _userRepository.FindAsync(userId);
+            if (reviewfromDb != null)
+            {
+                var reviwer = await _userRepository.FindAsync(userId);
 
-            if(reviewfromDb.ReviewerId != userId)
-                throw new ConflictException("The request is not actual!");
+                if (reviewfromDb.ReviewerId != userId || reviwer.Role!=RoleName.manager)
+                    throw new ConflictException("The request is not actual!");
 
-            if(!((reviewfromDb.Request.Reviews.OrderBy(x => x.Id)).TakeWhile(x => x.ReviewerId != userId)).All(x=>x.IsApproved!= null))
-                throw new ConflictException("No previous review!");          
+                if (!((reviewfromDb.Request.Reviews.OrderBy(x => x.Id)).TakeWhile(x => x.ReviewerId != userId)).All(x => x.IsApproved != null))
+                    throw new ConflictException("No previous review!");
 
-            if (reviewfromDb.Request.State == VacationRequestState.Rejected)
-                throw new ConflictException("The request has already been rejected!");
+                if (reviewfromDb.Request.State == VacationRequestState.Rejected)
+                    throw new ConflictException("The request has already been rejected!");
 
-            if ((await _requestRepository.FilterAsync(r => r.Id == reviewfromDb.RequestId && r.Reviews
-                .Select(x => x.ReviewerId).Contains(userId)))
-                .Any() == false) 
-                throw new ConflictException("The request is not actual!");
+                if ((await _requestRepository.FilterAsync(r => r.Id == reviewfromDb.RequestId && r.Reviews
+                    .Select(x => x.ReviewerId).Contains(userId)))
+                    .Any() == false)
+                    throw new ConflictException("The request is not actual!");
 
-            if (IsReviewPassed(reviewfromDb, userId))
+                if (IsReviewPassed(reviewfromDb, userId))
                     throw new ConflictException("The request has already been <approved/rejected>!");
 
                 reviewfromDb.IsApproved = newModel.IsApproved;
                 reviewfromDb.Comment = newModel.Comment;
                 reviewfromDb.UpdatedAt = DateTime.Now.Date;
 
-            await _reviewRepository.UpdateAsync(reviewfromDb);
+                await _reviewRepository.UpdateAsync(reviewfromDb);
 
-            var notification = new ReviewUpdateHandler { Request = await _requestRepository.FindAsync(reviewfromDb.RequestId) };
-            await _mediator.Publish(notification);
+                var notification = new ReviewUpdateHandler { Request = await _requestRepository.FindAsync(reviewfromDb.RequestId) };
+                await _mediator.Publish(notification);
+            }
+            else
+                throw new ConflictException("The request is not actual!");
         }
 
         private bool IsReviewPassed(TimeOffRequestReview review, int reviewerId)
