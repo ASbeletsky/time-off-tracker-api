@@ -1,0 +1,30 @@
+﻿@using EmailTemplateRender.Views.Shared
+@using Microsoft.AspNetCore.Mvc.Localization
+
+@inject IHtmlLocalizer<EmailTemplateRender.SharedEmailResources> Localizer
+
+@model EmailTemplateRender.Views.Emails.RequestEmailViewModel
+
+<table class="mail__content" width="60%" border="0" cellspacing="0" cellpadding="0">
+    <tbody>
+        <tr>
+            <td>@Localizer["Who"]: @Model.Data.AuthorFullName</td>
+        </tr>
+        <tr>
+            <td>@Localizer["Type"]: @Localizer[Model.Data.RequestType]</td>
+        </tr>
+        <tr>
+            <td>@Localizer["Dates"]: @Model.Data.StartDate - @Model.Data.EndDate</td>
+        </tr>
+        <tr>
+            <td>@Localizer["Duration"]: @Localizer[Model.Data.Duration]</td>
+        </tr>
+        <tr>
+            <td>@Localizer["Comment"]: @Model.Data.Comment</td>
+        </tr>
+        <tr>
+            <td>@Localizer["Approved"]: @Model.Data.ApprovedFullNames</td>
+        </tr>
+    </tbody>
+</table>
+@await Html.PartialAsync("EmailButtons", new EmailButtonsViewModel(Model.ApproveUrl, Model.RejecteUrl))

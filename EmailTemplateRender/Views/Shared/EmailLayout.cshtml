@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <style type="text/css">
+        a {
+            margin: 0;
+            padding: 0;
+            font-size: 100%;
+            vertical-align: baseline;
+            background: transparent;
+            text-decoration: none;
+            color: black;
+        }
+
+        td {
+            padding: 5px 0px 5px 5px;
+            height: 14pt;
+        }
+
+        .accept__btn,
+        .reject__btn {
+            position: relative;
+            font-family: 'Google Sans', Helvetica, sans-serif;
+            font-size: 18px;
+            line-height: 20px;
+            border-radius: 4px;
+            color: #5f6368;
+            padding: 8px 30px;
+            margin: 10px;
+            border: 1px solid #dadce0;
+            cursor: pointer;
+            transition-property: background-color;
+            transition-duration: 0.3s;
+        }
+
+            .accept__btn:hover {
+                background-color: #04d939;
+                color: black;
+            }
+
+            .accept__btn:active {
+                background-color: #02ab26;
+            }
+
+            .reject__btn:hover {
+                background-color: #e00b41;
+                color: white;
+            }
+
+            .reject__btn:active {
+                background-color: #b80935;
+            }
+
+        .mail__content {
+            padding: 5px 10px;
+            display: flex;
+            font-family: 'Google Sans', Helvetica, sans-serif;
+            font-size: 14pt;
+            line-height: 20px;
+            color: black;
+        }
+
+        .mail_btns {
+            display: flex;
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0;">
+    @RenderBody()
+</body>
+</html>

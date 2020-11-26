@@ -1,0 +1,10 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+
+@inject IHtmlLocalizer<EmailTemplateRender.SharedEmailResources> Localizer
+
+@model EmailTemplateRender.Views.Shared.EmailButtonsViewModel
+
+<div class="mail_btns">
+    <a class="accept__btn" href="@Model.ApproveUrl">@Localizer["Approve"]</a>
+    <a class="reject__btn" href="@Model.RejecteUrl">@Localizer["Reject"]</a>
+</div>
